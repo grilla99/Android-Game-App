@@ -2,7 +2,7 @@ package com.example.fxgame;
 
 import android.graphics.Bitmap;
 
-public class ArenaCharacter {
+public class GameObject {
 
     protected Bitmap image;
 
@@ -18,7 +18,7 @@ public class ArenaCharacter {
     protected int x;
     protected int y;
 
-    public ArenaCharacter(Bitmap image, int rowCount, int colCount, int x, int y) {
+    public GameObject(Bitmap image, int rowCount, int colCount, int x, int y) {
         this.image = image;
         this.rowCount = rowCount;
         this.colCount = colCount;

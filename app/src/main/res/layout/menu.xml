@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <Button
+        android:id="@+id/high_score_button"
+        android:layout_width="259dp"
+        android:layout_height="79dp"
+        android:text="Highscores"
+        tools:layout_editor_absoluteX="80dp"
+        tools:layout_editor_absoluteY="309dp" />
+
+    <Button
+        android:id="@+id/new_game_button"
+        android:layout_width="258dp"
+        android:layout_height="71dp"
+        android:background="@android:color/holo_green_light"
+        android:text="New Game"
+        tools:layout_editor_absoluteX="77dp"
+        tools:layout_editor_absoluteY="205dp" />
+
+    <Button
+        android:id="@+id/exit_button"
+        style="@style/Widget.AppCompat.Button"
+        android:layout_width="254dp"
+        android:layout_height="71dp"
+        android:background="@android:color/holo_red_light"
+        android:text="Exit"
+        tools:layout_editor_absoluteX="85dp"
+        tools:layout_editor_absoluteY="526dp" />
+
+    <Button
+        android:id="@+id/manual_button"
+        android:layout_width="251dp"
+        android:layout_height="70dp"
+        android:text="Manual"
+        tools:layout_editor_absoluteX="83dp"
+        tools:layout_editor_absoluteY="428dp" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -6,11 +6,16 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.media.AudioAttributes;
+import android.media.AudioManager;
+import android.media.SoundPool;
+import android.os.Build;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.SurfaceHolder;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 
@@ -19,6 +24,14 @@ import java.util.List;
 public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
     private GameThread gameThread;
     private final List<ChibiCharacter> chibiList = new ArrayList<ChibiCharacter>();
+    private final List<Explosion> explosionList = new ArrayList<Explosion>();
+
+    private static final int MAX_STREAMS = 100;
+    private int soundIdExplosion;
+    private int soundIdBackground;
+
+    private boolean soundPoolLoaded;
+    private SoundPool soundPool;
 
 
     public GameSurface(Context context) {
@@ -28,6 +41,66 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         this.setFocusable(true);
 
         this.getHolder().addCallback(this);
+
+        this.initSoundPool();
+    }
+
+    private void initSoundPool() {
+        //with android api >= v21
+        if (Build.VERSION.SDK_INT >= 21) {
+            try {
+                AudioAttributes audioAttrib = new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_GAME)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build();
+
+                SoundPool.Builder builder = new SoundPool.Builder();
+                builder.setAudioAttributes(audioAttrib).setMaxStreams(MAX_STREAMS);
+
+                this.soundPool = builder.build();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            //with android api < 21
+        } else {
+            this.soundPool = new SoundPool(MAX_STREAMS, AudioManager.STREAM_MUSIC, 0);
+        }
+
+        //When SoundPool load complete
+        this.soundPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
+            @Override
+            public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
+                soundPoolLoaded = true;
+
+                //playing background sound
+                playSoundBackground();
+            }
+        });
+
+
+        //Load the sound background.mp3 into soundPool
+        this.soundIdBackground = this.soundPool.load(this.getContext(), R.raw.background,1);
+
+        this.soundIdExplosion = this.soundPool.load(this.getContext(), R.raw.explosion,1);
+    }
+
+    public void playSoundExplosion() {
+        if (this.soundPoolLoaded) {
+            float leftVol = 0.8f;
+            float rightVol = 0.8f;
+
+            //play explosion sound
+            int streamId = this.soundPool.play(this.soundIdExplosion,leftVol,rightVol, 1,0,1f);
+        }
+    }
+
+    public void playSoundBackground() {
+        if (this.soundPoolLoaded) {
+            float leftVol = 0.8f;
+            float rightVol = 0.8f;
+
+            //play background sound
+            int streamId = this.soundPool.play(this.soundIdExplosion, leftVol,rightVol,1,0,1f);
+        }
     }
 
     //Draw sprite to canvas
@@ -38,8 +111,11 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         for (ChibiCharacter chibi: chibiList) {
             chibi.draw(canvas);
         }
-    }
 
+        for (Explosion explosion: this.explosionList) {
+            explosion.draw(canvas);
+        }
+    }
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
 
@@ -66,6 +142,20 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         //loop through the character arraylist and update them
         for (ChibiCharacter chibi: chibiList) {
             chibi.update();
+        }
+        for (Explosion explosion: this.explosionList) {
+            explosion.update();
+        }
+
+        Iterator<Explosion> iterator = this.explosionList.iterator();
+        while(iterator.hasNext()) {
+            Explosion explosion = iterator.next();
+
+            if (explosion.isFinish()) {
+                //If explosion is finished, remove current element from iterator and the list
+                iterator.remove();
+                continue;
+            }
         }
     }
 
@@ -94,6 +184,25 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
             //get location of touch
             int x = (int)event.getX();
             int y = (int)event.getY();
+
+            //
+            Iterator<ChibiCharacter> iterator = this.chibiList.iterator();
+
+            while(iterator.hasNext()) {
+                ChibiCharacter chibi = iterator.next();
+
+                if (chibi.getX() < x && x < chibi.getX()  + chibi.getWidth()
+                && chibi.getY() < y && y < chibi.getY()+ chibi.getHeight()){
+                    //Remove the current element from iterator and list
+                    iterator.remove();
+
+                    //Create explosion object
+                    Bitmap bitmap = BitmapFactory.decodeResource(this.getResources(),R.drawable.explosion);
+                    Explosion explosion = new Explosion(this, bitmap,chibi.getX(), chibi.getY());
+
+                    this.explosionList.add(explosion);
+                }
+            }
 
             for (ChibiCharacter chibi: chibiList) {
                 int movingVectorX = x-chibi.getX();
