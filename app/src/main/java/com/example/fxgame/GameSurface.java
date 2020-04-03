@@ -22,7 +22,8 @@ import java.util.List;
 //Simulates entire surface of game. Extends surface view (which contains a canvas object)
 //Objects in game are drawn onto the canvas
 public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
-    private GameThread gameThread;
+    protected GameThread gameThread;
+    private Context mContext;
     private final List<ChibiCharacter> chibiList = new ArrayList<ChibiCharacter>();
     private final List<Explosion> explosionList = new ArrayList<Explosion>();
 
@@ -36,6 +37,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
     public GameSurface(Context context) {
         super(context);
+        this.mContext = context;
 
         //Make surface focusable so that it can handle events
         this.setFocusable(true);
@@ -213,4 +215,5 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         }
         return false;
     }
+
 }

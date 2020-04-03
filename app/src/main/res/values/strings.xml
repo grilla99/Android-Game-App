@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">FxGame</string>
+    <string name="exit">Exit</string>
+    <string name="manual">Manual</string>
+    <string name="submit">Submit</string>
+    <string name="new_game">New Game</string>
 </resources>
