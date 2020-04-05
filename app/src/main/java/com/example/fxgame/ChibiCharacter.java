@@ -27,7 +27,7 @@ public class ChibiCharacter extends GameObject {
 
     private long lastDrawNanoTime = -1;
 
-    private GameSurface gameSurface;
+    private GameSurfaceInterface gameSurface;
 
 
     public ChibiCharacter(GameSurface gameSurface, Bitmap image, int x, int y) {

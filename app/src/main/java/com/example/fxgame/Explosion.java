@@ -8,7 +8,7 @@ public class Explosion extends GameObject {
     private int colIndex = -1;
 
     private boolean finish = false;
-    private GameSurface gameSurface;
+    private GameSurfaceInterface gameSurface;
 
     public Explosion(GameSurface GameSurface, Bitmap image, int x, int y) {
         super(image, 5,5,x,y);
