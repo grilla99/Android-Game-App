@@ -3,6 +3,10 @@ package com.example.fxgame;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 
+import com.example.fxgame.GameSurface;
+import com.example.fxgame.GameSurfaceInterface;
+import com.example.fxgame.gameobjects.GameObject;
+
 public class Explosion extends GameObject {
     private int rowIndex = 0;
     private int colIndex = -1;
@@ -19,7 +23,7 @@ public class Explosion extends GameObject {
     public void update() {
         this.colIndex++;
 
-        //Play sound sound explosion noise
+        //Play sound explosion noise
         if (this.colIndex==0 && this.rowIndex==0) {
             this.gameSurface.playSoundExplosion();
         }

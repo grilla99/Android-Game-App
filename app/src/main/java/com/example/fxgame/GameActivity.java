@@ -2,8 +2,10 @@ package com.example.fxgame;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.TextView;
 
 //Launches a surface view
 
@@ -20,6 +22,6 @@ public class GameActivity extends Activity {
         //set no title
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-        this.setContentView(new GameSurfaceInterface(this));
+        this.setContentView(new GameSurface(this));
     }
 }

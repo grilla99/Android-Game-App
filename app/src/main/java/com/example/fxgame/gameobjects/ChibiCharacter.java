@@ -1,7 +1,10 @@
-package com.example.fxgame;
+package com.example.fxgame.gameobjects;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+
+import com.example.fxgame.GameSurface;
+import com.example.fxgame.gameobjects.GameObject;
 
 public class ChibiCharacter extends GameObject {
 
@@ -27,7 +30,7 @@ public class ChibiCharacter extends GameObject {
 
     private long lastDrawNanoTime = -1;
 
-    private GameSurfaceInterface gameSurface;
+    private GameSurface gameSurface;
 
 
     public ChibiCharacter(GameSurface gameSurface, Bitmap image, int x, int y) {

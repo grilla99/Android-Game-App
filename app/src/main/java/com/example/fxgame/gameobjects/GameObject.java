@@ -1,4 +1,4 @@
-package com.example.fxgame;
+package com.example.fxgame.gameobjects;
 
 import android.graphics.Bitmap;
 
