@@ -38,6 +38,8 @@ public class GameObject {
         return subImage;
     }
 
+    //Getter methods
+
     public int getX()  {
         return this.x;
     }
