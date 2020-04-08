@@ -3,8 +3,6 @@ package com.example.fxgame;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 
-import com.example.fxgame.GameSurface;
-import com.example.fxgame.GameSurfaceInterface;
 import com.example.fxgame.gameobjects.GameObject;
 
 public class Explosion extends GameObject {
@@ -12,7 +10,7 @@ public class Explosion extends GameObject {
     private int colIndex = -1;
 
     private boolean finish = false;
-    private GameSurfaceInterface gameSurface;
+    private GameSurface gameSurface;
 
     public Explosion(GameSurface GameSurface, Bitmap image, int x, int y) {
         super(image, 5,5,x,y);

@@ -23,7 +23,7 @@ public class ChibiCharacter extends GameObject {
     private Bitmap[] bottomToTops;
 
     // Velocity of game character (pixel/millisecond) - slower for the Chibi characters
-    public static final float VELOCITY = 0.09f;
+    public static float VELOCITY = 0.09f;
 
     private int movingVectorX = 0;
     private int movingVectorY = -1;
@@ -145,6 +145,10 @@ public class ChibiCharacter extends GameObject {
     public void setMovingVector(int movingVectorX, int movingVectorY)  {
         this.movingVectorX= movingVectorX;
         this.movingVectorY = movingVectorY;
+    }
+
+    public void setChibiSpeed(float velocity){
+        this.VELOCITY = velocity;
     }
 
 

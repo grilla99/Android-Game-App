@@ -4,7 +4,7 @@ import android.graphics.Canvas;
 import android.view.SurfaceHolder;
 
 public class GameThread extends Thread {
-    private boolean running;
+    private boolean running = false;
     private GameSurface gameSurface;
     private SurfaceHolder surfaceHolder;
 

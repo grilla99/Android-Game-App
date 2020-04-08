@@ -7,13 +7,9 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.media.AudioAttributes;
-import android.media.AudioManager;
 import android.media.SoundPool;
-import android.os.Build;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 
 import com.example.fxgame.framework.GameButton;
 import com.example.fxgame.gameobjects.ChibiCharacter;
@@ -27,8 +23,7 @@ import java.util.Random;
 
 //Simulates entire surface of game. Extends surface view (which contains a canvas object)
 //Objects in game are drawn onto the canvas
-public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
-
+public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callback {
     protected GameThread gameThread;
     private final Context mContext;
 
@@ -46,6 +41,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
     private boolean soundPoolLoaded;
     private SoundPool soundPool;
 
+    private static final String TAG = "GameSurface";
     private static int points;
 
     //Used to set the scaled font size taking into account pixel density and user preference
@@ -53,7 +49,8 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
     private boolean stop = false;
 
-    public GameSurface(Context context) {
+
+    public GameSurfaceOne(Context context) {
         super(context);
         this.mContext = context;
 
@@ -66,61 +63,15 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     public void initSoundPool() {
-        //with android api >= v21
-        if (Build.VERSION.SDK_INT >= 21) {
-            try {
-                AudioAttributes audioAttrib = new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_GAME)
-                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build();
-
-                SoundPool.Builder builder = new SoundPool.Builder();
-                builder.setAudioAttributes(audioAttrib).setMaxStreams(MAX_STREAMS);
-
-                this.soundPool = builder.build();
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            //with android api < 21
-        } else {
-            this.soundPool = new SoundPool(MAX_STREAMS, AudioManager.STREAM_MUSIC, 0);
-        }
-
-        //When SoundPool load complete
-        this.soundPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
-            @Override
-            public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
-                soundPoolLoaded = true;
-
-                //playing background sound
-                playSoundBackground();
-            }
-        });
-
-
-        //Load the sound background.mp3 into soundPool1
-        this.soundIdBackground = this.soundPool.load(this.getContext(), R.raw.background, 1);
-
-        this.soundIdExplosion = this.soundPool.load(this.getContext(), R.raw.explosion, 1);
+        super.initSoundPool();
     }
 
     public void playSoundExplosion() {
-        if (this.soundPoolLoaded) {
-            float leftVol = 0.8f;
-            float rightVol = 0.8f;
-
-            //play explosion sound
-            int streamId = this.soundPool.play(this.soundIdExplosion, leftVol, rightVol, 1, 0, 1f);
-        }
+        super.playSoundExplosion();
     }
 
     public void playSoundBackground() {
-        if (this.soundPoolLoaded) {
-            float leftVol = 0.8f;
-            float rightVol = 0.8f;
-
-            //play background sound
-            int streamId = this.soundPool.play(this.soundIdExplosion, leftVol, rightVol, 1, 0, 1f);
-        }
+        super.playSoundBackground();
     }
 
     //Draw sprite to canvas
@@ -135,7 +86,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         Bitmap scaledBackground = Bitmap.createScaledBitmap(background, this.getWidth(),
                 this.getHeight(), true);
 
-        canvas.drawBitmap(scaledBackground, 0, 0, null);
+        canvas.drawBitmap(scaledBackground, 0 , 0,null);
 
 
         //Draw characters and explosions into the arena
@@ -161,7 +112,12 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         Paint textPaint = new Paint();
         textPaint.setColor(Color.WHITE);
         textPaint.setTextSize(scaledSize);
-        canvas.drawText("Current score: " + points, 20, 50, textPaint);
+        canvas.drawText("Current score: " + points, 20,50,textPaint);
+    }
+
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+
     }
 
     // Implements method of SurfaceHolder.Callback
@@ -178,7 +134,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         Bitmap chibiBitmap2 = BitmapFactory.decodeResource(this.getResources(), R.drawable.chibi2);
 
         //Recursively create characters to add into the arena and position them randomly
-        for (int counter = 0; counter < 5; counter++) {
+        for (int counter = 0; counter < 5; counter++){
             int chibiX = getRandomNumberInRange(150, 1000);
             int chibiY = getRandomNumberInRange(700, 1450);
 
@@ -193,11 +149,77 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         this.gameThread = new GameThread(this, holder);
         this.gameThread.setRunning(true);
         this.gameThread.start();
+
+
     }
 
-    @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+    public void update() {
+        //loop through the character arraylist and update them
+        for (ChibiCharacter chibi : chibiList) {
 
+                chibi.update();
+                Iterator<MainCharacter> iterator = this.mainCharacterList.iterator();
+
+                while (iterator.hasNext()) {
+                    MainCharacter mainCharacter = iterator.next();
+                    int chibiX = chibi.getX();
+                    int chibiY = chibi.getY();
+                    int mainCharX = mainCharacter.getX();
+                    int mainCharY = mainCharacter.getY();
+
+                    //If the main character bumps into a chibi character
+                    if (isTouching(mainCharacter, chibiX, chibiY)) {
+                        //Remove the main character
+                        iterator.remove();
+
+                        //Create explosion object
+                        Bitmap bitmap = BitmapFactory.decodeResource(this.getResources(), R.drawable.explosion);
+                        Explosion explosion = new Explosion(this, bitmap, chibi.getX(), chibi.getY());
+
+                        // Add created explosion to explosion list
+                        this.explosionList.add(explosion);
+
+                        if (isHighScore(mContext, points)) {
+                            insertLevelOneScore(mContext, Integer.toString(points));
+                        }
+
+                        //Create the game over button and end game
+                        Bitmap gameOverBitmap = BitmapFactory.decodeResource(this.getResources(), R.drawable.gameover);
+                        GameButton gameOverButton = new GameButton(50, 50, gameOverBitmap, "gameover");
+
+                        this.gameButtonList.add(gameOverButton);
+
+                    }
+//                    } else if (isTouching(endGoal, mainCharX, mainCharY)) {
+//                        if (isHighScore(mContext, points)) {
+//                            insertLevelOneScore(mContext, Integer.toString(points));
+//                        }
+//
+//                        // progress to the next level
+//                    }
+                }
+            }
+
+
+        for (MainCharacter mainCharacter : mainCharacterList) {
+            mainCharacter.update();
+        }
+
+        for (Explosion explosion : this.explosionList) {
+            explosion.update();
+        }
+
+        Iterator<Explosion> iterator = this.explosionList.iterator();
+        while (iterator.hasNext()) {
+            Explosion explosion = iterator.next();
+
+            if (explosion.isFinish()) {
+                //If explosion is finished, remove current element from iterator and the list
+                iterator.remove();
+
+                continue;
+            }
+        }
     }
 
     @Override
@@ -243,7 +265,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
                     this.explosionList.add(explosion);
 
                     // Increase the points of player
-                    points += 1;
+                    points +=1;
                 }
             }
 
@@ -268,54 +290,6 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         return false;
     }
 
-    public void update() {
-        //loop through the character arraylist and update them
-        for (ChibiCharacter chibi : chibiList) {
-
-            chibi.update();
-            Iterator<MainCharacter> iterator = this.mainCharacterList.iterator();
-
-            while (iterator.hasNext()) {
-                MainCharacter mainCharacter = iterator.next();
-                int chibiX = chibi.getX();
-                int chibiY = chibi.getY();
-                int mainCharX = mainCharacter.getX();
-                int mainCharY = mainCharacter.getY();
-
-                //If the main character bumps into a chibi character
-                if (isTouching(mainCharacter, chibiX, chibiY)) {
-                    //Remove the main character
-                    iterator.remove();
-
-                    //Create explosion object
-                    Bitmap bitmap = BitmapFactory.decodeResource(this.getResources(), R.drawable.explosion);
-                    Explosion explosion = new Explosion(this, bitmap, chibi.getX(), chibi.getY());
-
-                    // Add created explosion to explosion list
-                    this.explosionList.add(explosion);
-
-                    if (isHighScore(mContext, points)) {
-//                        insertLevelOneScore(mContext, Integer.toString(points));
-                    }
-
-                    //Create the game over button and end game
-                    Bitmap gameOverBitmap = BitmapFactory.decodeResource(this.getResources(), R.drawable.gameover);
-                    GameButton gameOverButton = new GameButton(50, 50, gameOverBitmap, "gameover");
-
-                    this.gameButtonList.add(gameOverButton);
-
-                }
-//                    } else if (isTouching(endGoal, mainCharX, mainCharY)) {
-//                        if (isHighScore(mContext, points)) {
-//                            insertLevelOneScore(mContext, Integer.toString(points));
-//                        }
-//
-//                        // progress to the next level
-//                    }
-            }
-        }
-    }
-
     //A function to generate a random number within a range
     //Used to generate random chibi position at game start
     public static int getRandomNumberInRange(int min, int max) {
@@ -326,7 +300,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
         //Generate random within range
         Random r = new Random();
-        return r.nextInt((max - min) + 1) + min;
+        return r.nextInt((max-min) + 1) + min;
     }
 
     //Function to determine whether an object in the game is touching another
@@ -342,8 +316,15 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         return context.getSharedPreferences("Scores", Context.MODE_PRIVATE);
     }
 
+    //Could have overriden method where string of level is passed as param and inherit from super
+    public static void insertLevelOneScore(Context context, String value){
+        SharedPreferences.Editor editor = getPrefs(context).edit();
+        editor.putString("LevelOne", Integer.toString(points));
+        editor.commit();
+    }
+
     public boolean isHighScore(Context context, int points) {
-        String score = getPrefs(context).getString("LevelOne", "no_data_found");
+        String score = getPrefs(context).getString("LevelOne","no_data_found");
         int storedScore = Integer.parseInt(score);
 
         if (points > storedScore) {
@@ -354,7 +335,8 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
     public static String retrieveHighScore(Context context) {
         String key = "LevelOne";
-        return getPrefs(context).getString(key, "no_data_found");
+        return getPrefs(context).getString(key,"no_data_found");
 
     }
+
 }
