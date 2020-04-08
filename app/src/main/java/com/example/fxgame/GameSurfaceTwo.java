@@ -11,6 +11,7 @@ import android.view.SurfaceHolder;
 
 import com.example.fxgame.framework.GameButton;
 import com.example.fxgame.gameobjects.ChibiCharacter;
+import com.example.fxgame.gameobjects.Explosion;
 import com.example.fxgame.gameobjects.MainCharacter;
 
 import java.util.ArrayList;

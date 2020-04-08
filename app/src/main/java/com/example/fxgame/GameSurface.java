@@ -17,6 +17,7 @@ import android.view.SurfaceView;
 
 import com.example.fxgame.framework.GameButton;
 import com.example.fxgame.gameobjects.ChibiCharacter;
+import com.example.fxgame.gameobjects.Explosion;
 import com.example.fxgame.gameobjects.GameObject;
 import com.example.fxgame.gameobjects.MainCharacter;
 
@@ -31,6 +32,11 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
     protected GameThread gameThread;
     private final Context mContext;
+
+    //Declare variables to store levels
+    GameSurfaceOne levelOne;
+    GameSurfaceTwo levelTwo;
+    GameSurfaceThree levelThree;
 
     //Declare variables to store characters and explosions in the game
     private final List<ChibiCharacter> chibiList = new ArrayList<ChibiCharacter>();
@@ -167,6 +173,12 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
     // Implements method of SurfaceHolder.Callback
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
+
+        levelOne = new GameSurfaceOne(mContext);
+        levelTwo = new GameSurfaceTwo(mContext);
+        levelThree = new GameSurfaceThree(mContext);
+
+
         //Create game characters
         Bitmap chibiBitmap1 = BitmapFactory.decodeResource(this.getResources(), R.drawable.chibi1);
         MainCharacter mainCharacter = new MainCharacter(this, chibiBitmap1, 100, 50);
@@ -268,7 +280,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         return false;
     }
 
-    public void update() {
+    public void update() throws InterruptedException {
         //loop through the character arraylist and update them
         for (ChibiCharacter chibi : chibiList) {
 
@@ -304,6 +316,8 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
                     this.gameButtonList.add(gameOverButton);
 
+                    Thread.sleep(2000);
+
                 }
 //                    } else if (isTouching(endGoal, mainCharX, mainCharY)) {
 //                        if (isHighScore(mContext, points)) {
@@ -312,6 +326,26 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 //
 //                        // progress to the next level
 //                    }
+            }
+        }
+
+        for (MainCharacter mainCharacter : mainCharacterList) {
+            mainCharacter.update();
+        }
+
+        for (Explosion explosion : this.explosionList) {
+            explosion.update();
+        }
+
+        Iterator<Explosion> iterator = this.explosionList.iterator();
+        while (iterator.hasNext()) {
+            Explosion explosion = iterator.next();
+
+            if (explosion.isFinish()) {
+                //If explosion is finished, remove current element from iterator and the list
+                iterator.remove();
+
+                continue;
             }
         }
     }

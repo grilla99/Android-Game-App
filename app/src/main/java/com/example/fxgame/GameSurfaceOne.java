@@ -1,6 +1,7 @@
 package com.example.fxgame;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -11,8 +12,11 @@ import android.media.SoundPool;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 
+import com.example.fxgame.activities.GameActivity;
+import com.example.fxgame.activities.GameActivityTwo;
 import com.example.fxgame.framework.GameButton;
 import com.example.fxgame.gameobjects.ChibiCharacter;
+import com.example.fxgame.gameobjects.Explosion;
 import com.example.fxgame.gameobjects.GameObject;
 import com.example.fxgame.gameobjects.MainCharacter;
 
@@ -26,6 +30,8 @@ import java.util.Random;
 public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callback {
     protected GameThread gameThread;
     private final Context mContext;
+    private SurfaceHolder mHolder;
+    private Canvas mCanvas;
 
     //Declare variables to store characters and explosions in the game
     private final List<ChibiCharacter> chibiList = new ArrayList<ChibiCharacter>();
@@ -47,7 +53,7 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
     //Used to set the scaled font size taking into account pixel density and user preference
     private int scaledSize = getResources().getDimensionPixelSize(R.dimen.myFontSize);
 
-    private boolean stop = false;
+    private boolean mGameIsRunning = false;
 
 
     public GameSurfaceOne(Context context) {
@@ -79,6 +85,8 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
     public void draw(Canvas canvas) {
         //Draws the canvas
         super.draw(canvas);
+
+        this.mCanvas = canvas;
 
         //Set background colour for the canvas
 
@@ -123,6 +131,8 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
     // Implements method of SurfaceHolder.Callback
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
+        this.mHolder = holder;
+
         //Create game characters
         Bitmap chibiBitmap1 = BitmapFactory.decodeResource(this.getResources(), R.drawable.chibi1);
         MainCharacter mainCharacter = new MainCharacter(this, chibiBitmap1, 100, 50);
@@ -145,11 +155,10 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
         //Add characters to relevant list so they can be drawn into the game
         this.mainCharacterList.add(mainCharacter);
 
-        // Create and start the game thread
+
         this.gameThread = new GameThread(this, holder);
         this.gameThread.setRunning(true);
         this.gameThread.start();
-
 
     }
 
@@ -188,6 +197,7 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
                         GameButton gameOverButton = new GameButton(50, 50, gameOverBitmap, "gameover");
 
                         this.gameButtonList.add(gameOverButton);
+
 
                     }
 //                    } else if (isTouching(endGoal, mainCharX, mainCharY)) {
@@ -230,12 +240,15 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
                 this.gameThread.setRunning(false);
                 //Parent thread must wait until end of game thread
                 this.gameThread.join();
+
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
             retry = true;
         }
     }
+
+
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {

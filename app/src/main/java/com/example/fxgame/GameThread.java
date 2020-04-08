@@ -11,7 +11,6 @@ public class GameThread extends Thread {
     GameThread(GameSurface gameSurface, SurfaceHolder surfaceHolder) {
         this.gameSurface = gameSurface;
         this.surfaceHolder = surfaceHolder;
-
     }
 
     void setRunning(boolean isRunning) {
