@@ -1,5 +1,6 @@
 package com.example.fxgame;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -9,11 +10,14 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.media.SoundPool;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 
 import com.example.fxgame.activities.GameActivity;
 import com.example.fxgame.activities.GameActivityTwo;
+import com.example.fxgame.activities.MainActivity;
 import com.example.fxgame.framework.GameButton;
 import com.example.fxgame.gameobjects.ChibiCharacter;
 import com.example.fxgame.gameobjects.Explosion;
@@ -28,42 +32,66 @@ import java.util.Random;
 //Simulates entire surface of game. Extends surface view (which contains a canvas object)
 //Objects in game are drawn onto the canvas
 public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callback {
-    protected GameThread gameThread;
+    private GameThread gameThread;
     private final Context mContext;
     private SurfaceHolder mHolder;
-    private Canvas mCanvas;
 
     //Declare variables to store characters and explosions in the game
     private final List<ChibiCharacter> chibiList = new ArrayList<ChibiCharacter>();
     private final List<MainCharacter> mainCharacterList = new ArrayList<MainCharacter>();
     private final List<Explosion> explosionList = new ArrayList<Explosion>();
     private final List<GameButton> gameButtonList = new ArrayList<GameButton>();
+    GameButton gameOverButton;
 
     //Variables to deal with sounds within the game
     private static final int MAX_STREAMS = 100;
     private int soundIdExplosion;
     private int soundIdBackground;
 
+    private boolean isGameOver;
     private boolean soundPoolLoaded;
     private SoundPool soundPool;
 
     private static final String TAG = "GameSurface";
     private static int points;
 
+    Intent intent;
+
     //Used to set the scaled font size taking into account pixel density and user preference
     private int scaledSize = getResources().getDimensionPixelSize(R.dimen.myFontSize);
 
-    private boolean mGameIsRunning = false;
 
 
     public GameSurfaceOne(Context context) {
         super(context);
         this.mContext = context;
+        isGameOver = false;
 
         //Make surface focusable so that it can handle events
         this.setFocusable(true);
 
         this.getHolder().addCallback(this);
+
+        //Create game characters
+        Bitmap chibiBitmap1 = BitmapFactory.decodeResource(this.getResources(), R.drawable.chibi1);
+        MainCharacter mainCharacter = new MainCharacter(this, chibiBitmap1, 100, 50);
+
+        //Initialize the score as zero
+        points = 0;
+
+        //Create NPC's
+        Bitmap chibiBitmap2 = BitmapFactory.decodeResource(this.getResources(), R.drawable.chibi2);
+
+        //Recursively create characters to add into the arena and position them randomly
+        for (int counter = 0; counter < 5; counter++){
+            int chibiX = getRandomNumberInRange(150, 1000);
+            int chibiY = getRandomNumberInRange(700, 1450);
+
+            ChibiCharacter chibi1 = new ChibiCharacter(this, chibiBitmap2, chibiX, chibiY);
+            this.chibiList.add(chibi1);
+        }
+        //Add characters to relevant list so they can be drawn into the game
+        this.mainCharacterList.add(mainCharacter);
 
         this.initSoundPool();
     }
@@ -86,13 +114,10 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
         //Draws the canvas
         super.draw(canvas);
 
-        this.mCanvas = canvas;
-
         //Set background colour for the canvas
 
         Bitmap background = BitmapFactory.decodeResource(this.getResources(), R.drawable.grass);
-        Bitmap scaledBackground = Bitmap.createScaledBitmap(background, this.getWidth(),
-                this.getHeight(), true);
+        Bitmap scaledBackground = getScaledBitmap(background);
 
         canvas.drawBitmap(scaledBackground, 0 , 0,null);
 
@@ -110,10 +135,10 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
             explosion.draw(canvas);
         }
 
-        for (GameButton gameButton : this.gameButtonList) {
-            gameButton.setPosition(canvas.getWidth() / 2 - gameButton.getWidth() / 2,
-                    canvas.getHeight() / 2 - gameButton.getHeight() / 2);
-            gameButton.draw(canvas);
+        if (isGameOver) {
+            for (GameButton gameButton : this.gameButtonList) {
+                gameButton.draw(canvas);
+            }
         }
 
         //Draws user score in top left of screen
@@ -133,31 +158,8 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
     public void surfaceCreated(SurfaceHolder holder) {
         this.mHolder = holder;
 
-        //Create game characters
-        Bitmap chibiBitmap1 = BitmapFactory.decodeResource(this.getResources(), R.drawable.chibi1);
-        MainCharacter mainCharacter = new MainCharacter(this, chibiBitmap1, 100, 50);
-
-        //Initialize the score as zero
-        points = 0;
-
-        //Create NPC's
-        Bitmap chibiBitmap2 = BitmapFactory.decodeResource(this.getResources(), R.drawable.chibi2);
-
-        //Recursively create characters to add into the arena and position them randomly
-        for (int counter = 0; counter < 5; counter++){
-            int chibiX = getRandomNumberInRange(150, 1000);
-            int chibiY = getRandomNumberInRange(700, 1450);
-
-            ChibiCharacter chibi1 = new ChibiCharacter(this, chibiBitmap2, chibiX, chibiY);
-            this.chibiList.add(chibi1);
-        }
-
-        //Add characters to relevant list so they can be drawn into the game
-        this.mainCharacterList.add(mainCharacter);
-
-
-        this.gameThread = new GameThread(this, holder);
-        this.gameThread.setRunning(true);
+        gameThread = new GameThread(this, holder);
+        gameThread.setCanDraw(true);
         this.gameThread.start();
 
     }
@@ -168,6 +170,7 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
 
                 chibi.update();
                 Iterator<MainCharacter> iterator = this.mainCharacterList.iterator();
+
 
                 while (iterator.hasNext()) {
                     MainCharacter mainCharacter = iterator.next();
@@ -181,38 +184,30 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
                         //Remove the main character
                         iterator.remove();
 
+                        //set game over bool to true
+                        this.isGameOver = true;
+
                         //Create explosion object
                         Bitmap bitmap = BitmapFactory.decodeResource(this.getResources(), R.drawable.explosion);
                         Explosion explosion = new Explosion(this, bitmap, chibi.getX(), chibi.getY());
-
                         // Add created explosion to explosion list
                         this.explosionList.add(explosion);
 
+                        //Create the game over button
+                        addGameOverButton(isGameOver);
+
+                        //If score is a high score, insert it into shared preferences
                         if (isHighScore(mContext, points)) {
                             insertLevelOneScore(mContext, Integer.toString(points));
                         }
-
-                        //Create the game over button and end game
-                        Bitmap gameOverBitmap = BitmapFactory.decodeResource(this.getResources(), R.drawable.gameover);
-                        GameButton gameOverButton = new GameButton(50, 50, gameOverBitmap, "gameover");
-
-                        this.gameButtonList.add(gameOverButton);
-
-
                     }
-//                    } else if (isTouching(endGoal, mainCharX, mainCharY)) {
-//                        if (isHighScore(mContext, points)) {
-//                            insertLevelOneScore(mContext, Integer.toString(points));
-//                        }
-//
-//                        // progress to the next level
-//                    }
                 }
             }
 
 
         for (MainCharacter mainCharacter : mainCharacterList) {
             mainCharacter.update();
+
         }
 
         for (Explosion explosion : this.explosionList) {
@@ -232,16 +227,25 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
         }
     }
 
+    private void addGameOverButton(boolean isGameOver) {
+        if (isGameOver) {
+            Bitmap gameOverBitmap = BitmapFactory.decodeResource(this.getResources(), R.drawable.game_over);
+            this.gameOverButton = new GameButton(this.getPivotX() + (gameOverBitmap.getWidth() /2), this.getPivotY() + (gameOverBitmap.getHeight() / 2),
+                    gameOverBitmap, "gameover");
+            gameButtonList.add(gameOverButton);
+    }
+    }
+
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         boolean retry = true;
         while (retry) {
             try {
-                this.gameThread.setRunning(false);
+                this.gameThread.interrupt();
+                this.gameThread.setCanDraw(false);
                 //Parent thread must wait until end of game thread
                 this.gameThread.join();
-
-            } catch (InterruptedException e) {
+            } catch (IllegalStateException | InterruptedException e) {
                 e.printStackTrace();
             }
             retry = true;
@@ -298,6 +302,16 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
                 }
 
             }
+            if (isGameOver) {
+                for (GameButton  gameButton : gameButtonList) {
+                    if (gameButton.btn_rect.contains(event.getX(), event.getY())) {
+                        Log.v("tag", "Reached inside game");
+                        ((Activity) mContext).finish();
+
+                        //Need to fix that buttons don't work once returned to home screen
+                    }
+                }
+            }
             return true;
         }
         return false;
@@ -333,7 +347,7 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
     public static void insertLevelOneScore(Context context, String value){
         SharedPreferences.Editor editor = getPrefs(context).edit();
         editor.putString("LevelOne", Integer.toString(points));
-        editor.commit();
+        editor.apply();
     }
 
     public boolean isHighScore(Context context, int points) {
@@ -351,5 +365,16 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
         return getPrefs(context).getString(key,"no_data_found");
 
     }
+    public GameSurface returnSurface() {
+        return this;
+    }
+
+    public Bitmap getScaledBitmap(Bitmap bitmap) {
+        Bitmap scaledBackground = Bitmap.createScaledBitmap(bitmap, this.getWidth(),
+                this.getHeight(), true);
+
+        return scaledBackground;
+    }
+
 
 }

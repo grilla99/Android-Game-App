@@ -13,7 +13,7 @@ import android.widget.Button;
 import com.example.fxgame.R;
 
 public class MainActivity extends AppCompatActivity {
-    private Context mContext = this;
+    public Context mContext = this;
 
 
     @Override
@@ -29,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, GameActivity.class);
                 mContext.startActivity(intent);
+
             }
         });
 

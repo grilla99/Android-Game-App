@@ -20,7 +20,7 @@ import java.util.List;
 public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callback {
 
     private final Context mContext;
-    protected GameThread gameThread;
+    private GameThread gameThread;
 
     //Declare variables to store characters and explosions in the game
     private final List<ChibiCharacter> chibiList = new ArrayList<ChibiCharacter>();
@@ -41,6 +41,7 @@ public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callbac
 
     //Used to set the scaled font size taking into account pixel density and user preference
     private int scaledSize = getResources().getDimensionPixelSize(R.dimen.myFontSize);
+    private SurfaceHolder mHolder;
 
     public GameSurfaceTwo(Context context) {
         super(context);
@@ -53,6 +54,32 @@ public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callbac
         this.getHolder().addCallback(this);
 
         this.initSoundPool();
+
+        //Create game characters
+        Bitmap chibiBitmap1 = BitmapFactory.decodeResource(this.getResources(), R.drawable.chibi1);
+        MainCharacter mainCharacter = new MainCharacter(this, chibiBitmap1, 100, 50);
+
+        //Initialize the score as zero
+        points = 0;
+
+        //Create NPC's
+        Bitmap chibiBitmap2 = BitmapFactory.decodeResource(this.getResources(), R.drawable.chibi2);
+
+        //Recursively create characters to add into the arena and position them randomly
+        //More Chibi's in level 2
+        for (int counter = 0; counter < 10; counter++){
+            int chibiX = getRandomNumberInRange(150, 1000);
+            int chibiY = getRandomNumberInRange(700, 1450);
+
+            ChibiCharacter chibi1 = new ChibiCharacter(this, chibiBitmap2, chibiX, chibiY);
+
+            //Increase the speed of NPC's in the second level
+            chibi1.setChibiSpeed((float)0.095);
+            this.chibiList.add(chibi1);
+        }
+
+        //Add characters to relevant list so they can be drawn into the game
+        this.mainCharacterList.add(mainCharacter);
     }
 
     @Override
@@ -94,35 +121,11 @@ public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callbac
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        //Create game characters
-        Bitmap chibiBitmap1 = BitmapFactory.decodeResource(this.getResources(), R.drawable.chibi1);
-        MainCharacter mainCharacter = new MainCharacter(this, chibiBitmap1, 100, 50);
-
-        //Initialize the score as zero
-        points = 0;
-
-        //Create NPC's
-        Bitmap chibiBitmap2 = BitmapFactory.decodeResource(this.getResources(), R.drawable.chibi2);
-
-        //Recursively create characters to add into the arena and position them randomly
-        //More Chibi's in level 2
-        for (int counter = 0; counter < 10; counter++){
-            int chibiX = getRandomNumberInRange(150, 1000);
-            int chibiY = getRandomNumberInRange(700, 1450);
-
-            ChibiCharacter chibi1 = new ChibiCharacter(this, chibiBitmap2, chibiX, chibiY);
-
-            //Increase the speed of NPC's in the second level
-            chibi1.setChibiSpeed((float)0.095);
-            this.chibiList.add(chibi1);
-        }
-
-        //Add characters to relevant list so they can be drawn into the game
-        this.mainCharacterList.add(mainCharacter);
+        this.mHolder = holder;
 
         // Create and start the game thread
-        this.gameThread = new GameThread(this, holder);
-        this.gameThread.setRunning(true);
+        this.gameThread = new GameThread(this, mHolder);
+        this.gameThread.setCanDraw(true);
         this.gameThread.start();
     }
 
@@ -153,6 +156,9 @@ public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callbac
 
     @Override
     public void update() {
+    }
 
+    public GameSurface returnSurface() {
+        return this;
     }
 }

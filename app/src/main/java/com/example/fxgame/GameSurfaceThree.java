@@ -56,4 +56,8 @@ public class GameSurfaceThree extends GameSurface implements SurfaceHolder.Callb
     public void update() {
         System.out.println("x");
     }
+
+    public GameSurface returnSurface() {
+        return this;
+    }
 }

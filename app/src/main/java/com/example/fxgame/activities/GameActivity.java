@@ -25,6 +25,7 @@ public class GameActivity extends Activity {
         //set no title
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-        this.setContentView(new GameSurface(this));
+        this.setContentView(new GameSurfaceOne(this));
+
     }
 }

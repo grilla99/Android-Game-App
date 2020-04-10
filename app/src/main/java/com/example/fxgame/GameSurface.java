@@ -1,5 +1,6 @@
 package com.example.fxgame;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -11,6 +12,7 @@ import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.SoundPool;
 import android.os.Build;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -29,8 +31,8 @@ import java.util.Random;
 //Simulates entire surface of game. Extends surface view (which contains a canvas object)
 //Objects in game are drawn onto the canvas
 public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
+    private GameThread gameThread;
 
-    protected GameThread gameThread;
     private final Context mContext;
 
     //Declare variables to store levels
@@ -39,10 +41,10 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
     GameSurfaceThree levelThree;
 
     //Declare variables to store characters and explosions in the game
-    private final List<ChibiCharacter> chibiList = new ArrayList<ChibiCharacter>();
-    private final List<MainCharacter> mainCharacterList = new ArrayList<MainCharacter>();
-    private final List<Explosion> explosionList = new ArrayList<Explosion>();
-    private final List<GameButton> gameButtonList = new ArrayList<GameButton>();
+    protected List<ChibiCharacter> chibiList = new ArrayList<ChibiCharacter>();
+    protected List<MainCharacter> mainCharacterList = new ArrayList<MainCharacter>();
+    protected List<Explosion> explosionList = new ArrayList<Explosion>();
+    protected List<GameButton> gameButtonList = new ArrayList<GameButton>();
 
     //Variables to deal with sounds within the game
     private static final int MAX_STREAMS = 100;
@@ -58,6 +60,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
     private int scaledSize = getResources().getDimensionPixelSize(R.dimen.myFontSize);
 
     private boolean stop = false;
+    private SurfaceHolder mHolder;
 
     public GameSurface(Context context) {
         super(context);
@@ -173,7 +176,6 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
     // Implements method of SurfaceHolder.Callback
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-
         levelOne = new GameSurfaceOne(mContext);
         levelTwo = new GameSurfaceTwo(mContext);
         levelThree = new GameSurfaceThree(mContext);
@@ -203,13 +205,14 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
         // Create and start the game thread
         this.gameThread = new GameThread(this, holder);
-        this.gameThread.setRunning(true);
+        this.gameThread.setCanDraw(true);
         this.gameThread.start();
+
+
     }
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-
     }
 
     @Override
@@ -217,10 +220,8 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         boolean retry = true;
         while (retry) {
             try {
-                this.gameThread.setRunning(false);
-                //Parent thread must wait until end of game thread
-                this.gameThread.join();
-            } catch (InterruptedException e) {
+                this.gameThread.setCanDraw(false);
+            } catch (IllegalStateException e ){
                 e.printStackTrace();
             }
             retry = true;
@@ -256,6 +257,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
                     // Increase the points of player
                     points += 1;
+
                 }
             }
 
@@ -273,14 +275,13 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
                         chibi.setMovingVector(chibiMovingVectorX, chibiMovingVectorY);
                     }
                 }
-
             }
             return true;
         }
         return false;
     }
 
-    public void update() throws InterruptedException {
+    public void update() {
         //loop through the character arraylist and update them
         for (ChibiCharacter chibi : chibiList) {
 
@@ -311,12 +312,12 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
                     }
 
                     //Create the game over button and end game
-                    Bitmap gameOverBitmap = BitmapFactory.decodeResource(this.getResources(), R.drawable.gameover);
+                    Bitmap gameOverBitmap = BitmapFactory.decodeResource(this.getResources(), R.drawable.game_over);
                     GameButton gameOverButton = new GameButton(50, 50, gameOverBitmap, "gameover");
 
                     this.gameButtonList.add(gameOverButton);
+                    ((Activity)mContext).finish();
 
-                    Thread.sleep(2000);
 
                 }
 //                    } else if (isTouching(endGoal, mainCharX, mainCharY)) {
@@ -391,4 +392,5 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         return getPrefs(context).getString(key, "no_data_found");
 
     }
+
 }

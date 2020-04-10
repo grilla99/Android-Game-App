@@ -1,28 +1,38 @@
 package com.example.fxgame;
 
+import android.app.Activity;
+import android.content.Context;
 import android.graphics.Canvas;
 import android.view.SurfaceHolder;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 public class GameThread extends Thread {
-    private boolean running = false;
+    private volatile boolean canDraw = false;
     private GameSurface gameSurface;
     private SurfaceHolder surfaceHolder;
+    private Context mContext;
 
     GameThread(GameSurface gameSurface, SurfaceHolder surfaceHolder) {
         this.gameSurface = gameSurface;
         this.surfaceHolder = surfaceHolder;
     }
 
-    void setRunning(boolean isRunning) {
-        running = isRunning;
+    void setCanDraw(boolean canDraw) {
+        this.canDraw = canDraw;
 
     }
+
 
     @Override
     public void run() {
         long startTime = System.nanoTime();
 
-        while (running) {
+        if (interrupted()) {
+            return;
+        }
+
+        while (canDraw) {
             Canvas canvas = null;
 
             try {
@@ -30,14 +40,14 @@ public class GameThread extends Thread {
                 canvas = this.surfaceHolder.lockCanvas();
 
                 // Synchronized
-                synchronized (canvas)  {
+                synchronized (canvas) {
                     this.gameSurface.update();
                     this.gameSurface.draw(canvas);
                 }
-            }catch(Exception e)  {
+            } catch (Exception e) {
                 // Do nothing.
             } finally {
-                if(canvas!= null)  {
+                if (canvas != null) {
                     // Unlock Canvas.
                     this.surfaceHolder.unlockCanvasAndPost(canvas);
                 }
@@ -50,12 +60,12 @@ public class GameThread extends Thread {
             if (waitTime < 10) {
                 waitTime = 10; //ms
             }
-            System.out.println("Wait time: "+ waitTime);
+            System.out.println("Wait time: " + waitTime);
 
             try {
                 //Sleep
                 this.sleep(waitTime);
-            } catch (InterruptedException e ){
+            } catch (InterruptedException e) {
                 //put error handling
             }
             startTime = System.nanoTime();

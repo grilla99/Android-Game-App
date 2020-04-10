@@ -23,7 +23,7 @@ public class ChibiCharacter extends GameObject {
     private Bitmap[] bottomToTops;
 
     // Velocity of game character (pixel/millisecond) - slower for the Chibi characters
-    public static float VELOCITY = 0.09f;
+    public static float VELOCITY = 0.12f;
 
     private int movingVectorX = 0;
     private int movingVectorY = -1;
