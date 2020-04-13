@@ -3,6 +3,7 @@ package com.example.fxgame;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
+import android.util.Log;
 import android.view.SurfaceHolder;
 
 import java.util.concurrent.locks.ReentrantLock;
@@ -11,11 +12,15 @@ public class GameThread extends Thread {
     private volatile boolean canDraw = false;
     private GameSurface gameSurface;
     private SurfaceHolder surfaceHolder;
+    private int threadId;
+    private static int threadCounter = 0;
     private Context mContext;
 
     GameThread(GameSurface gameSurface, SurfaceHolder surfaceHolder) {
         this.gameSurface = gameSurface;
         this.surfaceHolder = surfaceHolder;
+        this.threadId = threadCounter;
+        threadCounter++;
     }
 
     void setCanDraw(boolean canDraw) {
@@ -39,10 +44,12 @@ public class GameThread extends Thread {
                 // Get Canvas from Holder and lock it.
                 canvas = this.surfaceHolder.lockCanvas();
 
+
+
                 // Synchronized
                 synchronized (canvas) {
                     this.gameSurface.update();
-                    this.gameSurface.draw(canvas);
+                    this.gameSurface.doDraw(canvas);
                 }
             } catch (Exception e) {
                 // Do nothing.
@@ -62,12 +69,14 @@ public class GameThread extends Thread {
             }
             System.out.println("Wait time: " + waitTime);
 
+            //Send thread to sleep for short period
+            // Is useful for battery saving
             try {
-                //Sleep
-                this.sleep(waitTime);
+                Thread.sleep(waitTime);
             } catch (InterruptedException e) {
-                //put error handling
+                e.printStackTrace();
             }
+
             startTime = System.nanoTime();
             System.out.print(".");
         }

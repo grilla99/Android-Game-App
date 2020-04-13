@@ -1,32 +1,48 @@
 package com.example.fxgame;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.media.SoundPool;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
+import android.view.SurfaceView;
+import android.view.View;
 
+import com.example.fxgame.activities.GameActivityThree;
+import com.example.fxgame.activities.GameActivityTwo;
 import com.example.fxgame.framework.GameButton;
 import com.example.fxgame.gameobjects.ChibiCharacter;
 import com.example.fxgame.gameobjects.Explosion;
+import com.example.fxgame.gameobjects.GameTarget;
 import com.example.fxgame.gameobjects.MainCharacter;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
-public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callback {
+
+public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callback{
 
     private final Context mContext;
     private GameThread gameThread;
+    private static final String MYPREFERENCES = "MyPrefs";
+    private static final String Level = "LevelTwo";
+    SharedPreferences sharedPreferences;
 
     //Declare variables to store characters and explosions in the game
     private final List<ChibiCharacter> chibiList = new ArrayList<ChibiCharacter>();
     private final List<MainCharacter> mainCharacterList = new ArrayList<MainCharacter>();
     private final List<Explosion> explosionList = new ArrayList<Explosion>();
     private final List<GameButton> gameButtonList = new ArrayList<GameButton>();
+
 
     //Variables to deal with sounds within the game
     private static final int MAX_STREAMS = 100;
@@ -42,11 +58,15 @@ public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callbac
     //Used to set the scaled font size taking into account pixel density and user preference
     private int scaledSize = getResources().getDimensionPixelSize(R.dimen.myFontSize);
     private SurfaceHolder mHolder;
+    private boolean isGameOver = false;
+    private GameButton gameOverButton;
+    private GameTarget chocoTarget;
 
     public GameSurfaceTwo(Context context) {
         super(context);
-        //constructor
         this.mContext = context;
+
+        setZOrderOnTop(true);
 
         //Make surface focusable so that it can handle events
         this.setFocusable(true);
@@ -59,8 +79,12 @@ public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callbac
         Bitmap chibiBitmap1 = BitmapFactory.decodeResource(this.getResources(), R.drawable.chibi1);
         MainCharacter mainCharacter = new MainCharacter(this, chibiBitmap1, 100, 50);
 
-        //Initialize the score as zero
-        points = 0;
+        Bitmap chocobar = BitmapFactory.decodeResource(this.getResources(), R.drawable.choco);
+        chocoTarget = new GameTarget(chocobar, 800, 1200);
+
+        //Retrieve the high score from shared preferences.
+        sharedPreferences = context.getSharedPreferences(MYPREFERENCES, Context.MODE_PRIVATE);
+        points = getHighScoreFromPreferences();
 
         //Create NPC's
         Bitmap chibiBitmap2 = BitmapFactory.decodeResource(this.getResources(), R.drawable.chibi2);
@@ -80,10 +104,11 @@ public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callbac
 
         //Add characters to relevant list so they can be drawn into the game
         this.mainCharacterList.add(mainCharacter);
+
+        this.initSoundPool();
     }
 
-    @Override
-    public void draw(Canvas canvas) {
+    public void doDraw(Canvas canvas) {
         //Draws the canvas
         super.draw(canvas);
 
@@ -154,11 +179,127 @@ public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callbac
         super.playSoundBackground();
     }
 
+
     @Override
-    public void update() {
+    public boolean onTouchEvent(MotionEvent event) {
+
+        Log.v("class", "surface two");
+        return true;
     }
 
-    public GameSurface returnSurface() {
-        return this;
+
+
+    @Override
+    public void update() {
+        //loop through the character arraylist and update them
+        for (ChibiCharacter chibi : chibiList) {
+
+            chibi.update();
+            Iterator<MainCharacter> iterator = this.mainCharacterList.iterator();
+
+
+            while (iterator.hasNext()) {
+                MainCharacter mainCharacter = iterator.next();
+                int chibiX = chibi.getX();
+                int chibiY = chibi.getY();
+
+                //If the main character bumps into a chibi character
+                if (isTouching(mainCharacter, chibiX, chibiY)) {
+                    //Remove the main character
+                    iterator.remove();
+
+                    //set game over bool to true
+                    this.isGameOver = true;
+
+                    //Create explosion object
+                    Bitmap bitmap = BitmapFactory.decodeResource(this.getResources(), R.drawable.explosion);
+                    Explosion explosion = new Explosion(this, bitmap, chibi.getX(), chibi.getY());
+                    // Add created explosion to explosion list
+                    this.explosionList.add(explosion);
+
+                    //Create the game over button
+                    addGameOverButton(isGameOver);
+
+                    //If score is a high score, insert it into shared preferences
+                   if (getHighScoreFromPreferences() < points) {
+                       saveHighScore();
+                   }
+                }
+            }
+        }
+
+
+        for (MainCharacter mainCharacter : mainCharacterList) {
+            //update main character
+            mainCharacter.update();
+
+            //check if main character is touching end goal
+            int chocoX = chocoTarget.getX();
+            int chocoY = chocoTarget.getY();
+
+            if (isTouching(mainCharacter, chocoX, chocoY)) {
+                gameThread.setCanDraw(false);
+                gameThread.interrupt();
+
+                if (getHighScoreFromPreferences() < points) {
+                    saveHighScore();
+                }
+
+                //Load level three
+                Intent intent = new Intent(mContext, GameActivityThree.class);
+                mContext.startActivity(intent);
+            };
+        }
+
+        for (Explosion explosion : this.explosionList) {
+            explosion.update();
+        }
+
+        Iterator<Explosion> iterator = this.explosionList.iterator();
+        while (iterator.hasNext()) {
+            Explosion explosion = iterator.next();
+
+            if (explosion.isFinish()) {
+                //If explosion is finished, remove current element from iterator and the list
+                iterator.remove();
+
+                continue;
+            }
+        }
     }
+
+    public boolean isHighScore(Context context, int points) {
+        String score = getPrefs(context).getString("LevelTwo", "no_data_found");
+        int storedScore = Integer.parseInt(score);
+
+        if (points > storedScore) {
+            return true;
+        }
+        return false;
+    }
+
+    void addGameOverButton(boolean isGameOver) {
+        if (isGameOver) {
+            Bitmap gameOverBitmap = BitmapFactory.decodeResource(this.getResources(), R.drawable.game_over);
+            this.gameOverButton = new GameButton(this.getPivotX() + (gameOverBitmap.getWidth() /2), this.getPivotY() + (gameOverBitmap.getHeight() / 2),
+                    gameOverBitmap, "gameover");
+            gameButtonList.add(gameOverButton);
+        }
+    }
+
+    public int getHighScoreFromPreferences() {
+        //Gets the user high score from shared preferences for LevelTwo
+        sharedPreferences = mContext.getSharedPreferences(MYPREFERENCES, Context.MODE_PRIVATE);
+        String highScoreString = sharedPreferences.getString("LevelTwo", "0");
+        return Integer.parseInt(highScoreString);
+
+    }
+
+    public void saveHighScore() {
+        //Save the user points to shared preferences
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(Level, Integer.toString(points));
+        editor.commit();
+    }
+
 }

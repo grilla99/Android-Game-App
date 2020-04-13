@@ -22,7 +22,7 @@ public class MainCharacter extends GameObject {
     private Bitmap[] bottomToTops;
 
     // Velocity of game character (pixel/millisecond)
-    public static final float VELOCITY = 0.1f;
+    public static float VELOCITY = 0.1f;
 
     private int movingVectorX = 10;
     private int movingVectorY = 5;
@@ -143,6 +143,10 @@ public class MainCharacter extends GameObject {
     public void setMovingVector(int movingVectorX, int movingVectorY)  {
         this.movingVectorX= movingVectorX;
         this.movingVectorY = movingVectorY;
+    }
+
+    public void setVelocity(float velocity) {
+        VELOCITY = velocity;
     }
 
 

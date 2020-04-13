@@ -7,12 +7,12 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
 
-import com.example.fxgame.GameSurface;
-import com.example.fxgame.GameSurfaceOne;
+import com.example.fxgame.GameSurfaceThree;
+import com.example.fxgame.R;
 
 //Launches a surface view
 
-public class GameActivity extends Activity {
+public class GameActivityThree extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,9 +25,7 @@ public class GameActivity extends Activity {
         //set no title
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-        this.setContentView(new GameSurfaceOne(this));
-
+        this.setContentView(new GameSurfaceThree(this));
 
     }
-
 }

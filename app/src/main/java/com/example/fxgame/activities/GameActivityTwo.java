@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import com.example.fxgame.GameSurface;
 import com.example.fxgame.GameSurfaceTwo;
+import com.example.fxgame.R;
 
 //Launches a surface view
 
@@ -26,5 +27,6 @@ public class GameActivityTwo extends Activity {
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
         this.setContentView(new GameSurfaceTwo(this));
+
     }
 }

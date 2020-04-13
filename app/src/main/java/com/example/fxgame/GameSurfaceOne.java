@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
 
 import com.example.fxgame.activities.GameActivity;
 import com.example.fxgame.activities.GameActivityTwo;
@@ -22,6 +23,7 @@ import com.example.fxgame.framework.GameButton;
 import com.example.fxgame.gameobjects.ChibiCharacter;
 import com.example.fxgame.gameobjects.Explosion;
 import com.example.fxgame.gameobjects.GameObject;
+import com.example.fxgame.gameobjects.GameTarget;
 import com.example.fxgame.gameobjects.MainCharacter;
 
 import java.util.ArrayList;
@@ -35,6 +37,9 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
     private GameThread gameThread;
     private final Context mContext;
     private SurfaceHolder mHolder;
+    private static final String MYPREFERENCES = "MyPrefs";
+    private static final String Level = "LevelOne";
+    SharedPreferences sharedPreferences;
 
     //Declare variables to store characters and explosions in the game
     private final List<ChibiCharacter> chibiList = new ArrayList<ChibiCharacter>();
@@ -42,6 +47,7 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
     private final List<Explosion> explosionList = new ArrayList<Explosion>();
     private final List<GameButton> gameButtonList = new ArrayList<GameButton>();
     GameButton gameOverButton;
+    private GameTarget lollipopTarget;
 
     //Variables to deal with sounds within the game
     private static final int MAX_STREAMS = 100;
@@ -66,6 +72,7 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
         super(context);
         this.mContext = context;
         isGameOver = false;
+        sharedPreferences = context.getSharedPreferences(MYPREFERENCES, Context.MODE_PRIVATE);
 
         //Make surface focusable so that it can handle events
         this.setFocusable(true);
@@ -75,6 +82,9 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
         //Create game characters
         Bitmap chibiBitmap1 = BitmapFactory.decodeResource(this.getResources(), R.drawable.chibi1);
         MainCharacter mainCharacter = new MainCharacter(this, chibiBitmap1, 100, 50);
+
+        Bitmap lollipop = BitmapFactory.decodeResource(this.getResources(), R.drawable.lollipop);
+        lollipopTarget = new GameTarget(lollipop, 800, 1200);
 
         //Initialize the score as zero
         points = 0;
@@ -109,18 +119,15 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
     }
 
     //Draw sprite to canvas
-    @Override
-    public void draw(Canvas canvas) {
+    public void doDraw(Canvas canvas) {
         //Draws the canvas
         super.draw(canvas);
 
         //Set background colour for the canvas
-
         Bitmap background = BitmapFactory.decodeResource(this.getResources(), R.drawable.grass);
         Bitmap scaledBackground = getScaledBitmap(background);
 
         canvas.drawBitmap(scaledBackground, 0 , 0,null);
-
 
         //Draw characters and explosions into the arena
         for (ChibiCharacter chibi : chibiList) {
@@ -140,6 +147,8 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
                 gameButton.draw(canvas);
             }
         }
+
+        lollipopTarget.draw(canvas);
 
         //Draws user score in top left of screen
         Paint textPaint = new Paint();
@@ -176,8 +185,6 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
                     MainCharacter mainCharacter = iterator.next();
                     int chibiX = chibi.getX();
                     int chibiY = chibi.getY();
-                    int mainCharX = mainCharacter.getX();
-                    int mainCharY = mainCharacter.getY();
 
                     //If the main character bumps into a chibi character
                     if (isTouching(mainCharacter, chibiX, chibiY)) {
@@ -197,8 +204,8 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
                         addGameOverButton(isGameOver);
 
                         //If score is a high score, insert it into shared preferences
-                        if (isHighScore(mContext, points)) {
-                            insertLevelOneScore(mContext, Integer.toString(points));
+                        if (getHighScoreFromPreferences() < points) {
+                            saveHighScore();
                         }
                     }
                 }
@@ -206,10 +213,31 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
 
 
         for (MainCharacter mainCharacter : mainCharacterList) {
+            //update main character
             mainCharacter.update();
 
+            //check if main character is touching lollipop
+            int lolliX = lollipopTarget.getX();
+            int lolliY = lollipopTarget.getY();
+
+
+            //Interrupt the game thread and stop it drawing
+            if (isTouching(mainCharacter, lolliX, lolliY)) {
+                gameThread.setCanDraw(false);
+                gameThread.interrupt();
+
+                //Save the high score to shared preferences
+                if (getHighScoreFromPreferences() < points) {
+                    saveHighScore();
+                }
+
+                //Load level two
+                Intent intent = new Intent(mContext, GameActivityTwo.class);
+                mContext.startActivity(intent);
+            };
         }
 
+        //Loop through all explosions and update them
         for (Explosion explosion : this.explosionList) {
             explosion.update();
         }
@@ -221,19 +249,8 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
             if (explosion.isFinish()) {
                 //If explosion is finished, remove current element from iterator and the list
                 iterator.remove();
-
-                continue;
             }
         }
-    }
-
-    private void addGameOverButton(boolean isGameOver) {
-        if (isGameOver) {
-            Bitmap gameOverBitmap = BitmapFactory.decodeResource(this.getResources(), R.drawable.game_over);
-            this.gameOverButton = new GameButton(this.getPivotX() + (gameOverBitmap.getWidth() /2), this.getPivotY() + (gameOverBitmap.getHeight() / 2),
-                    gameOverBitmap, "gameover");
-            gameButtonList.add(gameOverButton);
-    }
     }
 
     @Override
@@ -251,8 +268,6 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
             retry = true;
         }
     }
-
-
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -305,7 +320,6 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
             if (isGameOver) {
                 for (GameButton  gameButton : gameButtonList) {
                     if (gameButton.btn_rect.contains(event.getX(), event.getY())) {
-                        Log.v("tag", "Reached inside game");
                         ((Activity) mContext).finish();
 
                         //Need to fix that buttons don't work once returned to home screen
@@ -314,7 +328,7 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
             }
             return true;
         }
-        return false;
+        return true;
     }
 
     //A function to generate a random number within a range
@@ -339,42 +353,32 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
         return false;
     }
 
-    public static SharedPreferences getPrefs(Context context) {
-        return context.getSharedPreferences("Scores", Context.MODE_PRIVATE);
-    }
-
-    //Could have overriden method where string of level is passed as param and inherit from super
-    public static void insertLevelOneScore(Context context, String value){
-        SharedPreferences.Editor editor = getPrefs(context).edit();
-        editor.putString("LevelOne", Integer.toString(points));
-        editor.apply();
-    }
-
-    public boolean isHighScore(Context context, int points) {
-        String score = getPrefs(context).getString("LevelOne","no_data_found");
-        int storedScore = Integer.parseInt(score);
-
-        if (points > storedScore) {
-            return true;
+    void addGameOverButton(boolean isGameOver) {
+        //Adds a game over button to the canvas once isGameOver is set to true
+        if (isGameOver) {
+            Bitmap gameOverBitmap = BitmapFactory.decodeResource(this.getResources(), R.drawable.game_over);
+            this.gameOverButton = new GameButton(this.getPivotX() + (gameOverBitmap.getWidth() /2), this.getPivotY() + (gameOverBitmap.getHeight() / 2),
+                    gameOverBitmap, "gameover");
+            gameButtonList.add(gameOverButton);
         }
-        return false;
     }
 
-    public static String retrieveHighScore(Context context) {
-        String key = "LevelOne";
-        return getPrefs(context).getString(key,"no_data_found");
-
-    }
-    public GameSurface returnSurface() {
-        return this;
+    public void saveHighScore() {
+        //Save the user points to shared preferences
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(Level, Integer.toString(points));
+        editor.commit();
     }
 
-    public Bitmap getScaledBitmap(Bitmap bitmap) {
-        Bitmap scaledBackground = Bitmap.createScaledBitmap(bitmap, this.getWidth(),
-                this.getHeight(), true);
+    public int getHighScoreFromPreferences() {
+        //Gets the user high score from shared preferences for LevelOne
+        sharedPreferences = mContext.getSharedPreferences(MYPREFERENCES, Context.MODE_PRIVATE);
+        //Return 0 as default value if no value stored so that current player score will be used
+        String highScoreString = sharedPreferences.getString("LevelOne", "0");
+        return Integer.parseInt(highScoreString);
 
-        return scaledBackground;
     }
+
 
 
 }
