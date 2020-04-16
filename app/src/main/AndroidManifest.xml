@@ -18,6 +18,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".activities.GameActivity" />
+        <activity android:name=".activities.GameActivityTwo" />
         <activity android:name=".activities.GameActivityThree" />
     </application>
 

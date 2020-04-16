@@ -25,7 +25,6 @@ public class GameThread extends Thread {
 
     void setCanDraw(boolean canDraw) {
         this.canDraw = canDraw;
-
     }
 
 
@@ -33,12 +32,10 @@ public class GameThread extends Thread {
     public void run() {
         long startTime = System.nanoTime();
 
-        if (interrupted()) {
-            return;
-        }
-
         while (canDraw) {
             Canvas canvas = null;
+
+            Log.v("" + threadId, "is running");
 
             try {
                 // Get Canvas from Holder and lock it.
@@ -75,6 +72,7 @@ public class GameThread extends Thread {
                 Thread.sleep(waitTime);
             } catch (InterruptedException e) {
                 e.printStackTrace();
+                return;
             }
 
             startTime = System.nanoTime();

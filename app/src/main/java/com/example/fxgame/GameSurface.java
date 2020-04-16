@@ -30,7 +30,7 @@ import java.util.Random;
 
 //Simulates entire surface of game. Extends surface view (which contains a canvas object)
 //Objects in game are drawn onto the canvas
-public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
+public abstract class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
     private GameThread gameThread;
 
     private final Context mContext;
@@ -168,64 +168,8 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        //code that handles user interacting with the screen
-        //character will run toward where touched
-        super.onTouchEvent(event);
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            //get location of touch
-            int x = (int) event.getX();
-            int y = (int) event.getY();
 
-            //Create new iterator to loop through Chibi characters
-            Iterator<ChibiCharacter> iterator = this.chibiList.iterator();
-
-            while (iterator.hasNext()) {
-                ChibiCharacter chibi = iterator.next();
-
-                if (isTouching(chibi, x, y)) {
-                    //Remove the current element from iterator and list
-                    iterator.remove();
-
-                    //Create explosion object
-                    Bitmap bitmap = BitmapFactory.decodeResource(this.getResources(), R.drawable.explosion);
-                    Explosion explosion = new Explosion(this, bitmap, chibi.getX(), chibi.getY());
-
-                    // Add created explosion to explosion list
-                    this.explosionList.add(explosion);
-
-                    // Increase the points of player
-                    points +=1;
-                }
-            }
-
-            for (MainCharacter mainCharacter : mainCharacterList) {
-                int movingVectorX = x - mainCharacter.getX();
-                int movingVectorY = y - mainCharacter.getY();
-                mainCharacter.setMovingVector(movingVectorX, movingVectorY);
-
-                // If the chibi is further down the screen than the main character,
-                // Continue heading towards the top of the screen, else follow the chibi
-                for (ChibiCharacter chibi : chibiList) {
-                    if (chibi.getY() < mainCharacter.getY()) {
-                        int chibiMovingVectorX = x - chibi.getX();
-                        int chibiMovingVectorY = y - chibi.getY();
-                        chibi.setMovingVector(chibiMovingVectorX, chibiMovingVectorY);
-                    }
-                }
-
-            }
-            if (isGameOver) {
-                for (GameButton  gameButton : gameButtonList) {
-                    if (gameButton.btn_rect.contains(event.getX(), event.getY())) {
-                        ((Activity) mContext).finish();
-
-                        //Need to fix that buttons don't work once returned to home screen
-                    }
-                }
-            }
-            return true;
-        }
-        return true;
+        return false;
     }
 
     public void update() {
@@ -323,4 +267,8 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         String score = getPrefs(context).getString(key,"0");
         return Integer.parseInt(score);
     }
+
+    public abstract int getHighScoreFromPreferences();
+
+    public void saveHighScore(){}
 }

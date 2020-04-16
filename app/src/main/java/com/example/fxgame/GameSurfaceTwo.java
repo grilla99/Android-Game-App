@@ -16,6 +16,8 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 
+import androidx.annotation.NonNull;
+
 import com.example.fxgame.activities.GameActivityThree;
 import com.example.fxgame.activities.GameActivityTwo;
 import com.example.fxgame.framework.GameButton;
@@ -29,8 +31,8 @@ import java.util.Iterator;
 import java.util.List;
 
 
-public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callback{
-
+public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callback, View.OnTouchListener {
+    private SurfaceHolder mHolder;
     private final Context mContext;
     private GameThread gameThread;
     private static final String MYPREFERENCES = "MyPrefs";
@@ -43,43 +45,39 @@ public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callbac
     private final List<Explosion> explosionList = new ArrayList<Explosion>();
     private final List<GameButton> gameButtonList = new ArrayList<GameButton>();
 
+    private GameButton gameOverButton;
+    private GameTarget chocoTarget;
+
 
     //Variables to deal with sounds within the game
     private static final int MAX_STREAMS = 100;
     private int soundIdExplosion;
     private int soundIdBackground;
-
     private boolean soundPoolLoaded;
     private SoundPool soundPool;
 
     private static final String TAG = "GameSurfaceTwo";
     private int points;
+    private boolean isGameOver = false;
 
     //Used to set the scaled font size taking into account pixel density and user preference
     private int scaledSize = getResources().getDimensionPixelSize(R.dimen.myFontSize);
-    private SurfaceHolder mHolder;
-    private boolean isGameOver = false;
-    private GameButton gameOverButton;
-    private GameTarget chocoTarget;
 
     public GameSurfaceTwo(Context context) {
         super(context);
         this.mContext = context;
-
-        setZOrderOnTop(true);
+        isGameOver = false;
 
         //Make surface focusable so that it can handle events
         this.setFocusable(true);
-
         this.getHolder().addCallback(this);
 
-        this.initSoundPool();
 
         //Create game characters
         Bitmap chibiBitmap1 = BitmapFactory.decodeResource(this.getResources(), R.drawable.chibi1);
         MainCharacter mainCharacter = new MainCharacter(this, chibiBitmap1, 100, 50);
 
-        Bitmap chocobar = BitmapFactory.decodeResource(this.getResources(), R.drawable.choco);
+        Bitmap chocobar = BitmapFactory.decodeResource(this.getResources(), R.drawable.chocolate);
         chocoTarget = new GameTarget(chocobar, 800, 1200);
 
         //Retrieve the high score from shared preferences.
@@ -98,7 +96,7 @@ public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callbac
             ChibiCharacter chibi1 = new ChibiCharacter(this, chibiBitmap2, chibiX, chibiY);
 
             //Increase the speed of NPC's in the second level
-            chibi1.setChibiSpeed((float)0.095);
+            chibi1.setChibiSpeed((float)0.1);
             this.chibiList.add(chibi1);
         }
 
@@ -137,12 +135,16 @@ public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callbac
             gameButton.draw(canvas);
         }
 
+        chocoTarget.draw(canvas);
+
         //Draws user score in top left of screen
         Paint textPaint = new Paint();
         textPaint.setColor(Color.WHITE);
         textPaint.setTextSize(scaledSize);
         canvas.drawText("Current score: " + points, 20,50,textPaint);
     }
+
+
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
@@ -164,10 +166,6 @@ public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callbac
         super.surfaceDestroyed(holder);
     }
 
-    @Override
-    public void initSoundPool() {
-        super.initSoundPool();
-    }
 
     @Override
     public void playSoundExplosion() {
@@ -179,15 +177,67 @@ public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callbac
         super.playSoundBackground();
     }
 
-
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        //code that handles user interacting with the screen
+        //character will run toward where touched
 
-        Log.v("class", "surface two");
-        return true;
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            //get location of touch
+            int x = (int) event.getX();
+            int y = (int) event.getY();
+
+            //Create new iterator to loop through Chibi characters
+            Iterator<ChibiCharacter> iterator = this.chibiList.iterator();
+
+            while (iterator.hasNext()) {
+                ChibiCharacter chibi = iterator.next();
+
+                if (isTouching(chibi, x, y)) {
+                    //Remove the current element from iterator and list
+                    iterator.remove();
+
+                    //Create explosion object
+                    Bitmap bitmap = BitmapFactory.decodeResource(this.getResources(), R.drawable.explosion);
+                    Explosion explosion = new Explosion(this, bitmap, chibi.getX(), chibi.getY());
+
+                    // Add created explosion to explosion list
+                    this.explosionList.add(explosion);
+
+                    // Increase the points of player
+                    points +=1;
+                }
+            }
+
+            for (MainCharacter mainCharacter : mainCharacterList) {
+                int movingVectorX = x - mainCharacter.getX();
+                int movingVectorY = y - mainCharacter.getY();
+                mainCharacter.setMovingVector(movingVectorX, movingVectorY);
+
+                // If the chibi is further down the screen than the main character,
+                // Continue heading towards the top of the screen, else follow the chibi
+                for (ChibiCharacter chibi : chibiList) {
+                    if (chibi.getY() < mainCharacter.getY()) {
+                        int chibiMovingVectorX = x - chibi.getX();
+                        int chibiMovingVectorY = y - chibi.getY();
+                        chibi.setMovingVector(chibiMovingVectorX, chibiMovingVectorY);
+                    }
+                }
+
+            }
+            if (isGameOver) {
+                for (GameButton  gameButton : gameButtonList) {
+                    if (gameButton.btn_rect.contains(event.getX(), event.getY())) {
+                        ((Activity) mContext).finish();
+
+                        //Need to fix that buttons don't work once returned to home screen
+                    }
+                }
+            }
+            return false;
+        }
+        return false;
     }
-
-
 
     @Override
     public void update() {
@@ -228,7 +278,7 @@ public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callbac
             }
         }
 
-
+        //Loop through maincharacter (s)
         for (MainCharacter mainCharacter : mainCharacterList) {
             //update main character
             mainCharacter.update();
@@ -237,10 +287,13 @@ public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callbac
             int chocoX = chocoTarget.getX();
             int chocoY = chocoTarget.getY();
 
+            //If main character is touching the chocolate bar
             if (isTouching(mainCharacter, chocoX, chocoY)) {
+                //Stop the thread from drawing and interrupt it
                 gameThread.setCanDraw(false);
                 gameThread.interrupt();
 
+                //If the current score is higher than saved high score, save high score
                 if (getHighScoreFromPreferences() < points) {
                     saveHighScore();
                 }
@@ -268,18 +321,10 @@ public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callbac
         }
     }
 
-    public boolean isHighScore(Context context, int points) {
-        String score = getPrefs(context).getString("LevelTwo", "no_data_found");
-        int storedScore = Integer.parseInt(score);
-
-        if (points > storedScore) {
-            return true;
-        }
-        return false;
-    }
-
     void addGameOverButton(boolean isGameOver) {
         if (isGameOver) {
+            //If the game is said to be over, create a new GameButton object and add it to the
+            // Game button list
             Bitmap gameOverBitmap = BitmapFactory.decodeResource(this.getResources(), R.drawable.game_over);
             this.gameOverButton = new GameButton(this.getPivotX() + (gameOverBitmap.getWidth() /2), this.getPivotY() + (gameOverBitmap.getHeight() / 2),
                     gameOverBitmap, "gameover");
@@ -287,14 +332,16 @@ public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callbac
         }
     }
 
+    @Override
     public int getHighScoreFromPreferences() {
         //Gets the user high score from shared preferences for LevelTwo
         sharedPreferences = mContext.getSharedPreferences(MYPREFERENCES, Context.MODE_PRIVATE);
-        String highScoreString = sharedPreferences.getString("LevelTwo", "0");
+        String highScoreString = sharedPreferences.getString("LevelOne", "0");
         return Integer.parseInt(highScoreString);
 
     }
 
+    @Override
     public void saveHighScore() {
         //Save the user points to shared preferences
         SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -302,4 +349,10 @@ public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callbac
         editor.commit();
     }
 
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        Log.v(TAG, "yes");
+
+        return false;
+    }
 }

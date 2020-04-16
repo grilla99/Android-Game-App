@@ -16,9 +16,8 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 
-import com.example.fxgame.activities.GameActivity;
+
 import com.example.fxgame.activities.GameActivityTwo;
-import com.example.fxgame.activities.MainActivity;
 import com.example.fxgame.framework.GameButton;
 import com.example.fxgame.gameobjects.ChibiCharacter;
 import com.example.fxgame.gameobjects.Explosion;
@@ -33,9 +32,9 @@ import java.util.Random;
 
 //Simulates entire surface of game. Extends surface view (which contains a canvas object)
 //Objects in game are drawn onto the canvas
-public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callback {
-    private GameThread gameThread;
+public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callback{
     private final Context mContext;
+    private GameThread gameThread;
     private SurfaceHolder mHolder;
     private static final String MYPREFERENCES = "MyPrefs";
     private static final String Level = "LevelOne";
@@ -49,23 +48,13 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
     GameButton gameOverButton;
     private GameTarget lollipopTarget;
 
-    //Variables to deal with sounds within the game
-    private static final int MAX_STREAMS = 100;
-    private int soundIdExplosion;
-    private int soundIdBackground;
-
     private boolean isGameOver;
-    private boolean soundPoolLoaded;
-    private SoundPool soundPool;
 
     private static final String TAG = "GameSurface";
     private static int points;
 
-    Intent intent;
-
     //Used to set the scaled font size taking into account pixel density and user preference
     private int scaledSize = getResources().getDimensionPixelSize(R.dimen.myFontSize);
-
 
 
     public GameSurfaceOne(Context context) {
@@ -76,7 +65,6 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
 
         //Make surface focusable so that it can handle events
         this.setFocusable(true);
-
         this.getHolder().addCallback(this);
 
         //Create game characters
@@ -106,18 +94,6 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
         this.initSoundPool();
     }
 
-    public void initSoundPool() {
-        super.initSoundPool();
-    }
-
-    public void playSoundExplosion() {
-        super.playSoundExplosion();
-    }
-
-    public void playSoundBackground() {
-        super.playSoundBackground();
-    }
-
     //Draw sprite to canvas
     public void doDraw(Canvas canvas) {
         //Draws the canvas
@@ -142,10 +118,10 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
             explosion.draw(canvas);
         }
 
-        if (isGameOver) {
-            for (GameButton gameButton : this.gameButtonList) {
-                gameButton.draw(canvas);
-            }
+        for (GameButton gameButton : this.gameButtonList) {
+            gameButton.setPosition(canvas.getWidth() / 2 - gameButton.getWidth() / 2,
+                    canvas.getHeight() / 2 - gameButton.getHeight() / 2);
+            gameButton.draw(canvas);
         }
 
         lollipopTarget.draw(canvas);
@@ -157,116 +133,33 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
         canvas.drawText("Current score: " + points, 20,50,textPaint);
     }
 
-    @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-
-    }
-
     // Implements method of SurfaceHolder.Callback
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         this.mHolder = holder;
 
-        gameThread = new GameThread(this, holder);
-        gameThread.setCanDraw(true);
+        this.gameThread = new GameThread(this, mHolder);
+        this.gameThread.setCanDraw(true);
         this.gameThread.start();
 
     }
 
-    public void update() {
-        //loop through the character arraylist and update them
-        for (ChibiCharacter chibi : chibiList) {
-
-                chibi.update();
-                Iterator<MainCharacter> iterator = this.mainCharacterList.iterator();
-
-
-                while (iterator.hasNext()) {
-                    MainCharacter mainCharacter = iterator.next();
-                    int chibiX = chibi.getX();
-                    int chibiY = chibi.getY();
-
-                    //If the main character bumps into a chibi character
-                    if (isTouching(mainCharacter, chibiX, chibiY)) {
-                        //Remove the main character
-                        iterator.remove();
-
-                        //set game over bool to true
-                        this.isGameOver = true;
-
-                        //Create explosion object
-                        Bitmap bitmap = BitmapFactory.decodeResource(this.getResources(), R.drawable.explosion);
-                        Explosion explosion = new Explosion(this, bitmap, chibi.getX(), chibi.getY());
-                        // Add created explosion to explosion list
-                        this.explosionList.add(explosion);
-
-                        //Create the game over button
-                        addGameOverButton(isGameOver);
-
-                        //If score is a high score, insert it into shared preferences
-                        if (getHighScoreFromPreferences() < points) {
-                            saveHighScore();
-                        }
-                    }
-                }
-            }
-
-
-        for (MainCharacter mainCharacter : mainCharacterList) {
-            //update main character
-            mainCharacter.update();
-
-            //check if main character is touching lollipop
-            int lolliX = lollipopTarget.getX();
-            int lolliY = lollipopTarget.getY();
-
-
-            //Interrupt the game thread and stop it drawing
-            if (isTouching(mainCharacter, lolliX, lolliY)) {
-                gameThread.setCanDraw(false);
-                gameThread.interrupt();
-
-                //Save the high score to shared preferences
-                if (getHighScoreFromPreferences() < points) {
-                    saveHighScore();
-                }
-
-                //Load level two
-                Intent intent = new Intent(mContext, GameActivityTwo.class);
-                mContext.startActivity(intent);
-            };
-        }
-
-        //Loop through all explosions and update them
-        for (Explosion explosion : this.explosionList) {
-            explosion.update();
-        }
-
-        Iterator<Explosion> iterator = this.explosionList.iterator();
-        while (iterator.hasNext()) {
-            Explosion explosion = iterator.next();
-
-            if (explosion.isFinish()) {
-                //If explosion is finished, remove current element from iterator and the list
-                iterator.remove();
-            }
-        }
+    public void initSoundPool() {
+        super.initSoundPool();
     }
 
+    public void playSoundExplosion() {
+        super.playSoundExplosion();
+    }
+
+    public void playSoundBackground() {
+        super.playSoundBackground();
+    }
+
+
     @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-        boolean retry = true;
-        while (retry) {
-            try {
-                this.gameThread.interrupt();
-                this.gameThread.setCanDraw(false);
-                //Parent thread must wait until end of game thread
-                this.gameThread.join();
-            } catch (IllegalStateException | InterruptedException e) {
-                e.printStackTrace();
-            }
-            retry = true;
-        }
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+
     }
 
     @Override
@@ -326,10 +219,102 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
                     }
                 }
             }
-            return true;
+            return false;
         }
-        return true;
+        return false;
     }
+
+
+
+    public void update() {
+        //loop through the character arraylist and update them
+        for (ChibiCharacter chibi : chibiList) {
+
+                chibi.update();
+                Iterator<MainCharacter> iterator = this.mainCharacterList.iterator();
+
+
+                while (iterator.hasNext()) {
+                    MainCharacter mainCharacter = iterator.next();
+                    int chibiX = chibi.getX();
+                    int chibiY = chibi.getY();
+
+                    //If the main character bumps into a chibi character
+                    if (isTouching(mainCharacter, chibiX, chibiY)) {
+                        //Remove the main character
+                        iterator.remove();
+
+                        //set game over bool to true
+                        this.isGameOver = true;
+
+                        //Create explosion object
+                        Bitmap bitmap = BitmapFactory.decodeResource(this.getResources(), R.drawable.explosion);
+                        Explosion explosion = new Explosion(this, bitmap, chibi.getX(), chibi.getY());
+                        // Add created explosion to explosion list
+                        this.explosionList.add(explosion);
+
+                        //Create the game over button
+                        addGameOverButton(isGameOver);
+
+                        //If score is a high score, insert it into shared preferences
+                        if (getHighScoreFromPreferences() < points) {
+                            saveHighScore();
+                        }
+                    }
+                }
+            }
+
+
+        for (MainCharacter mainCharacter : mainCharacterList) {
+            //update main character
+            mainCharacter.update();
+
+            //check if main character is touching lollipop
+            int lolliX = lollipopTarget.getX();
+            int lolliY = lollipopTarget.getY();
+
+
+            //Interrupt the game thread and stop it drawing
+            if (isTouching(mainCharacter, lolliX, lolliY)) {
+                gameThread.setCanDraw(false);
+                gameThread.interrupt();
+
+
+                //Save the high score to shared preferences
+                if (getHighScoreFromPreferences() < points) {
+                    saveHighScore();
+                }
+
+                //Load level two
+                Intent intent = new Intent(mContext, GameActivityTwo.class);
+                mContext.startActivity(intent);
+            };
+        }
+
+        //Loop through all explosions and update them
+        for (Explosion explosion : this.explosionList) {
+            explosion.update();
+        }
+
+        Iterator<Explosion> iterator = this.explosionList.iterator();
+        while (iterator.hasNext()) {
+            Explosion explosion = iterator.next();
+
+            if (explosion.isFinish()) {
+                //If explosion is finished, remove current element from iterator and the list
+                iterator.remove();
+
+                continue;
+            }
+        }
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+        super.surfaceDestroyed(holder);
+    }
+
+
 
     //A function to generate a random number within a range
     //Used to generate random chibi position at game start
@@ -352,6 +337,7 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
         }
         return false;
     }
+
 
     void addGameOverButton(boolean isGameOver) {
         //Adds a game over button to the canvas once isGameOver is set to true
@@ -378,7 +364,6 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
         return Integer.parseInt(highScoreString);
 
     }
-
 
 
 }
