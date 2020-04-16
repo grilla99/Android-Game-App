@@ -1,6 +1,5 @@
-package com.example.fxgame;
+package com.example.fxgame.surfaces;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -12,11 +11,11 @@ import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.SoundPool;
 import android.os.Build;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import com.example.fxgame.R;
 import com.example.fxgame.framework.GameButton;
 import com.example.fxgame.gameobjects.ChibiCharacter;
 import com.example.fxgame.gameobjects.Explosion;
@@ -24,7 +23,6 @@ import com.example.fxgame.gameobjects.GameObject;
 import com.example.fxgame.gameobjects.MainCharacter;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
@@ -270,5 +268,7 @@ public abstract class GameSurface extends SurfaceView implements SurfaceHolder.C
 
     public abstract int getHighScoreFromPreferences();
 
-    public void saveHighScore(){}
+    public abstract void saveHighScore();
+
+    public abstract void endGame(boolean nextLevel);
 }

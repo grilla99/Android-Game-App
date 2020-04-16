@@ -2,13 +2,10 @@ package com.example.fxgame.activities;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.TextView;
 
-import com.example.fxgame.GameSurface;
-import com.example.fxgame.GameSurfaceOne;
+import com.example.fxgame.surfaces.GameSurfaceOne;
 
 //Launches a surface view
 

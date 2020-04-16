@@ -1,12 +1,9 @@
-package com.example.fxgame;
+package com.example.fxgame.surfaces;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.util.Log;
 import android.view.SurfaceHolder;
-
-import java.util.concurrent.locks.ReentrantLock;
 
 public class GameThread extends Thread {
     private volatile boolean canDraw = false;
@@ -40,7 +37,6 @@ public class GameThread extends Thread {
             try {
                 // Get Canvas from Holder and lock it.
                 canvas = this.surfaceHolder.lockCanvas();
-
 
 
                 // Synchronized

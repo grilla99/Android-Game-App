@@ -3,8 +3,7 @@ package com.example.fxgame.gameobjects;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 
-import com.example.fxgame.GameSurface;
-import com.example.fxgame.gameobjects.GameObject;
+import com.example.fxgame.surfaces.GameSurface;
 
 public class Explosion extends GameObject {
     private int rowIndex = 0;
@@ -14,7 +13,7 @@ public class Explosion extends GameObject {
     private GameSurface gameSurface;
 
     public Explosion(GameSurface GameSurface, Bitmap image, int x, int y) {
-        super(image, 5,5,x,y);
+        super(image, 5, 5, x, y);
 
         this.gameSurface = GameSurface;
     }
@@ -23,11 +22,11 @@ public class Explosion extends GameObject {
         this.colIndex++;
 
         //Play sound explosion noise
-        if (this.colIndex==0 && this.rowIndex==0) {
+        if (this.colIndex == 0 && this.rowIndex == 0) {
             this.gameSurface.playSoundExplosion();
         }
 
-        if(this.colIndex >= this.colCount) {
+        if (this.colIndex >= this.colCount) {
             this.colIndex = 0;
             this.rowIndex++;
 
@@ -39,8 +38,8 @@ public class Explosion extends GameObject {
 
     public void draw(Canvas canvas) {
         if (!finish) {
-            Bitmap bitmap = this.createSubImageAt(rowIndex,colIndex);
-            canvas.drawBitmap(bitmap,this.x,this.y,null);
+            Bitmap bitmap = this.createSubImageAt(rowIndex, colIndex);
+            canvas.drawBitmap(bitmap, this.x, this.y, null);
         }
     }
 
