@@ -10,23 +10,35 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.media.SoundPool;
+import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
+
+import androidx.annotation.NonNull;
 
 import com.example.fxgame.R;
 import com.example.fxgame.activities.GameActivityThree;
 import com.example.fxgame.activities.GameActivityTwo;
+import com.example.fxgame.activities.HighScoreActivity;
 import com.example.fxgame.activities.MainActivity;
 import com.example.fxgame.framework.GameButton;
 import com.example.fxgame.gameobjects.ChibiCharacter;
 import com.example.fxgame.gameobjects.Explosion;
+import com.example.fxgame.gameobjects.GameTarget;
 import com.example.fxgame.gameobjects.MainCharacter;
 import com.example.fxgame.surfaces.GameSurface;
 import com.example.fxgame.surfaces.GameThread;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 public class GameSurfaceThree extends GameSurface implements SurfaceHolder.Callback {
     private SurfaceHolder mHolder;
@@ -41,6 +53,7 @@ public class GameSurfaceThree extends GameSurface implements SurfaceHolder.Callb
     private final List<MainCharacter> mainCharacterList = new ArrayList<MainCharacter>();
     private final List<Explosion> explosionList = new ArrayList<Explosion>();
     private final List<GameButton> gameButtonList = new ArrayList<GameButton>();
+    private GameTarget candyApple;
 
 
     //Variables to deal with sounds within the game
@@ -74,8 +87,8 @@ public class GameSurfaceThree extends GameSurface implements SurfaceHolder.Callb
         Bitmap chibiBitmap1 = BitmapFactory.decodeResource(this.getResources(), R.drawable.chibi1);
         MainCharacter mainCharacter = new MainCharacter(this, chibiBitmap1, 100, 50);
 
-        Bitmap chocobar = BitmapFactory.decodeResource(this.getResources(), R.drawable.chocolate);
-//        chocoTarget = new GameTarget(chocobar, 800, 1200);
+        Bitmap candyapple = BitmapFactory.decodeResource(this.getResources(), R.drawable.candyapple);
+        candyApple = new GameTarget(candyapple, 800, 1200);
 
         //Retrieve the high score from shared preferences.
         sharedPreferences = context.getSharedPreferences(MYPREFERENCES, Context.MODE_PRIVATE);
@@ -86,7 +99,7 @@ public class GameSurfaceThree extends GameSurface implements SurfaceHolder.Callb
 
         //Recursively create characters to add into the arena and position them randomly
         //More Chibi's in level 2
-        for (int counter = 0; counter < 16; counter++) {
+        for (int counter = 0; counter < 6; counter++) {
             int chibiX = getRandomNumberInRange(150, 1000);
             int chibiY = getRandomNumberInRange(700, 1450);
 
@@ -229,11 +242,12 @@ public class GameSurfaceThree extends GameSurface implements SurfaceHolder.Callb
             gameButton.draw(canvas);
         }
 
-//        chocoTarget.draw(canvas);
+        candyApple.draw(canvas);
 
         //Draws user score in top left of screen
         Paint textPaint = new Paint();
-        textPaint.setColor(Color.WHITE);
+        //Black colour for this level due to white background
+        textPaint.setColor(Color.BLACK);
         textPaint.setTextSize(scaledSize);
         canvas.drawText("Current score: " + points, 20, 50, textPaint);
     }
@@ -254,25 +268,7 @@ public class GameSurfaceThree extends GameSurface implements SurfaceHolder.Callb
 
                 //If the main character bumps into a chibi character
                 if (isTouching(mainCharacter, chibiX, chibiY)) {
-                    //Remove the main character
-                    iterator.remove();
-
-                    //set game over bool to true
-                    this.isGameOver = true;
-
-                    //Create explosion object
-                    Bitmap bitmap = BitmapFactory.decodeResource(this.getResources(), R.drawable.explosion);
-                    Explosion explosion = new Explosion(this, bitmap, chibi.getX(), chibi.getY());
-                    // Add created explosion to explosion list
-                    this.explosionList.add(explosion);
-
-                    //Create the game over button
-                    addGameOverButton(isGameOver);
-
-                    //If score is a high score, insert it into shared preferences
-                    if (getHighScoreFromPreferences() < points) {
-                        saveHighScore();
-                    }
+                    endGame(false);
                 }
             }
         }
@@ -282,25 +278,14 @@ public class GameSurfaceThree extends GameSurface implements SurfaceHolder.Callb
             //update main character
             mainCharacter.update();
 
-//            //check if main character is touching end goal
-//            int chocoX = chocoTarget.getX();
-//            int chocoY = chocoTarget.getY();
-//
-//            //If main character is touching the chocolate bar
-//            if (isTouching(mainCharacter, chocoX, chocoY)) {
-//                //Stop the thread from drawing and interrupt it
-//                gameThread.setCanDraw(false);
-//                gameThread.interrupt();
-//
-//                //If the current score is higher than saved high score, save high score
-//                if (getHighScoreFromPreferences() < points) {
-//                    saveHighScore();
-//                }
-//
-//                //Load level three
-//                Intent intent = new Intent(mContext, GameActivityThree.class);
-//                mContext.startActivity(intent);
-//            };
+            //check if main character is touching end goal
+            int teddyX = candyApple.getX();
+            int teddyY = candyApple.getY();
+
+            //If main character is touching the chocolate bar
+            if (isTouching(mainCharacter, teddyX, teddyY)) {
+                endGame(true);
+            }
         }
 
         for (Explosion explosion : this.explosionList) {
@@ -381,9 +366,15 @@ public class GameSurfaceThree extends GameSurface implements SurfaceHolder.Callb
                 saveHighScore();
             }
 
-            //Load level three
-            Intent intent = new Intent(mContext, GameActivityTwo.class);
+            Intent intent = new Intent(mContext, HighScoreActivity.class);
+
+            //Add the score to be used in the high score via a bundle
+            Bundle bundle = new Bundle();
+            bundle.putInt("Score", points);
+            intent.putExtras(bundle);
+
             mContext.startActivity(intent);
+
         }
     }
 }

@@ -20,6 +20,8 @@
         <activity android:name=".activities.GameActivity" />
         <activity android:name=".activities.GameActivityTwo" />
         <activity android:name=".activities.GameActivityThree" />
+        <activity android:name=".activities.HighScoreActivity"/>
+        <activity android:name=".activities.LoadHighScoreActivity"/>
     </application>
 
 </manifest>

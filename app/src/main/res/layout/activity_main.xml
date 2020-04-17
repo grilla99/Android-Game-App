@@ -23,7 +23,7 @@
             android:layout_below="@id/new_game_btn"
             android:layout_marginLeft="15dp"
             android:text="@string/high_scores" />
-        
+
         <Button
             android:id="@+id/manual_btn"
             android:layout_width="181dp"

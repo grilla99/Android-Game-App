@@ -21,13 +21,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Button newScreen = (Button) findViewById(R.id.new_game_btn);
-        Button exit = (Button) findViewById(R.id.exit_btn);
+        Button newScreen = findViewById(R.id.new_game_btn);
+        Button exit = findViewById(R.id.exit_btn);
 
         newScreen.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, GameActivity.class);
+                Intent intent = new Intent(mContext, GameActivityThree.class);
                 mContext.startActivity(intent);
 
             }

@@ -147,7 +147,7 @@ public class ChibiCharacter extends GameObject {
     }
 
     public void setChibiSpeed(float velocity) {
-        this.VELOCITY = velocity;
+        VELOCITY = velocity;
     }
 
 

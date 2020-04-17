@@ -160,7 +160,23 @@ public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callbac
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-        super.surfaceDestroyed(holder);
+//        boolean retry = true;
+//        if (gameThread != null) {
+//            gameThread.setCanDraw(false);
+//        }
+//
+//        //join the thread with this thread
+//        while (retry) {
+//            try {
+//                if (gameThread != null) {
+//                    gameThread.join();
+//                }
+//                retry = false;
+//            }
+//            catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//        }
     }
 
 
@@ -344,9 +360,11 @@ public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callbac
                 saveHighScore();
             }
 
+
             //Load level three
             Intent intent = new Intent(mContext, GameActivityThree.class);
             mContext.startActivity(intent);
+
         }
     }
 

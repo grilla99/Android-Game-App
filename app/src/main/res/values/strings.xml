@@ -5,4 +5,10 @@
     <string name="submit">Submit</string>
     <string name="new_game">New Game</string>
     <string name="high_scores">High Scores</string>
+    <string name="your_high_score">Your high score:</string>
+    <string name="congrats_text">Congratulations, your high score is:</string>
+    <string name="please_enter_your_name_below">Please enter your name below:</string>
+    <string name="rank_1">Rank #1:</string>
+    <string name="rank_2">Rank #2:</string>
+    <string name="rank_3">Rank #3:</string>
 </resources>

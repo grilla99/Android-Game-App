@@ -153,15 +153,6 @@ public abstract class GameSurface extends SurfaceView implements SurfaceHolder.C
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-        boolean retry = true;
-        while (retry) {
-            try {
-                this.gameThread.setCanDraw(false);
-            } catch (IllegalStateException e ){
-                e.printStackTrace();
-            }
-            retry = true;
-        }
     }
 
     @Override
@@ -188,11 +179,8 @@ public abstract class GameSurface extends SurfaceView implements SurfaceHolder.C
 
     //Function to determine whether an object in the game is touching another
     public boolean isTouching(GameObject gameObject, int x, int y) {
-        if (gameObject.getX() < x && x < gameObject.getX() + gameObject.getWidth()
-                && gameObject.getY() < y && y < gameObject.getY() + gameObject.getHeight()) {
-            return true;
-        }
-        return false;
+        return gameObject.getX() < x && x < gameObject.getX() + gameObject.getWidth()
+                && gameObject.getY() < y && y < gameObject.getY() + gameObject.getHeight();
     }
 
     //Could have overriden method where string of level is passed as param and inherit from super

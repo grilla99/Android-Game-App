@@ -282,7 +282,23 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-        super.surfaceDestroyed(holder);
+        boolean retry = true;
+        if (gameThread != null) {
+            gameThread.setCanDraw(false);
+        }
+
+        //join the thread with this thread
+        while (retry) {
+            try {
+                if (gameThread != null) {
+                    gameThread.join();
+                }
+                retry = false;
+            }
+            catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 
@@ -301,11 +317,8 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
 
     //Function to determine whether an object in the game is touching another
     public boolean isTouching(GameObject gameObject, int x, int y) {
-        if (gameObject.getX() < x && x < gameObject.getX() + gameObject.getWidth()
-                && gameObject.getY() < y && y < gameObject.getY() + gameObject.getHeight()) {
-            return true;
-        }
-        return false;
+        return gameObject.getX() < x && x < gameObject.getX() + gameObject.getWidth()
+                && gameObject.getY() < y && y < gameObject.getY() + gameObject.getHeight();
     }
 
 
@@ -353,8 +366,8 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
             mContext.startActivity(intent);
         } else {
             //Stop the thread from drawing and interrupt it
-            gameThread.setCanDraw(false);
             gameThread.interrupt();
+            gameThread.setCanDraw(false);
 
             //If the current score is higher than saved high score, save high score
             if (getHighScoreFromPreferences() < points) {

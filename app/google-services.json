@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "661106934093",
+    "firebase_url": "https://aaronjavafxgame.firebaseio.com",
+    "project_id": "aaronjavafxgame",
+    "storage_bucket": "aaronjavafxgame.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:661106934093:android:3d48c469a6a47753187704",
+        "android_client_info": {
+          "package_name": "com.example.fxgame"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "661106934093-bjete9v96hefio3776vs29ot8ho3apjj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC5pn9zjKMANQNVduJLLgfRQokfGtenS0o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "661106934093-bjete9v96hefio3776vs29ot8ho3apjj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
