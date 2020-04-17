@@ -61,6 +61,10 @@ public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callbac
     //Used to set the scaled font size taking into account pixel density and user preference
     private int scaledSize = getResources().getDimensionPixelSize(R.dimen.myFontSize);
 
+    /**
+     * Sets up characters in level and initialize variables
+     * @param context
+     */
     public GameSurfaceTwo(Context context) {
         super(context);
         this.mContext = context;
@@ -142,7 +146,10 @@ public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callbac
         canvas.drawText("Current score: " + points, 20, 50, textPaint);
     }
 
-
+    /**
+     * Create and start new game thread
+     * @param holder
+     */
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         this.mHolder = holder;
@@ -190,6 +197,11 @@ public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callbac
         super.playSoundBackground();
     }
 
+    /**
+     * Handle touch events in the game
+     * @param event
+     * @return boolean
+     */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         //code that handles user interacting with the screen
@@ -242,6 +254,12 @@ public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callbac
         }
         return false;
     }
+
+
+
+    /**
+     * Updates all characters and objects in the game
+     */
 
     @Override
     public void update() {
@@ -305,6 +323,10 @@ public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callbac
         }
     }
 
+    /**
+     * Add a game over button to game
+     * @param isGameOver
+     */
     void addGameOverButton(boolean isGameOver) {
         if (isGameOver) {
             //If the game is said to be over, create a new GameButton object and add it to the
@@ -316,6 +338,10 @@ public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callbac
         }
     }
 
+    /**
+     * See super
+     * @return
+     */
     @Override
     public int getHighScoreFromPreferences() {
         //Gets the user high score from shared preferences for LevelTwo
@@ -325,6 +351,9 @@ public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callbac
 
     }
 
+    /**
+     * See super
+     */
     @Override
     public void saveHighScore() {
         //Save the user points to shared preferences
@@ -334,6 +363,10 @@ public class GameSurfaceTwo extends GameSurface implements SurfaceHolder.Callbac
     }
 
 
+    /**
+     * Used to perform end game procedures
+     * @param nextLevel
+     */
     @Override
     public void endGame(boolean nextLevel) {
         if (!nextLevel) {

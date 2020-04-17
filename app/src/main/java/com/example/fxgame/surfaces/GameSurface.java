@@ -28,10 +28,14 @@ import java.util.Random;
 
 //Simulates entire surface of game. Extends surface view (which contains a canvas object)
 //Objects in game are drawn onto the canvas
+
+
 public abstract class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
+    //Game thread to use to draw
     private GameThread gameThread;
 
     private final Context mContext;
+    private SurfaceHolder mHolder;
 
     //Declare variables to store levels
     GameSurfaceOne levelOne;
@@ -49,20 +53,16 @@ public abstract class GameSurface extends SurfaceView implements SurfaceHolder.C
     private int soundIdExplosion;
     private int soundIdBackground;
 
-    private boolean isGameOver;
-
     private boolean soundPoolLoaded;
     private SoundPool soundPool;
-
-    private static int points;
 
     //Used to set the scaled font size taking into account pixel density and user preference
     private int scaledSize = getResources().getDimensionPixelSize(R.dimen.myFontSize);
 
-    private boolean stop = false;
-    private SurfaceHolder mHolder;
-    private GameButton gameOverButton;
-
+    /**
+     * Constructor for new surface
+      * @param context
+     */
     public GameSurface(Context context) {
         super(context);
         this.mContext = context;
@@ -75,6 +75,9 @@ public abstract class GameSurface extends SurfaceView implements SurfaceHolder.C
         this.initSoundPool();
     }
 
+    /**
+     * Creates the sound effects within game
+     */
     public void initSoundPool() {
         //with android api >= v21
         if (Build.VERSION.SDK_INT >= 21) {
@@ -113,6 +116,9 @@ public abstract class GameSurface extends SurfaceView implements SurfaceHolder.C
         this.soundIdExplosion = this.soundPool.load(this.getContext(), R.raw.explosion, 1);
     }
 
+    /**
+     * Plays sound effects within game
+     */
     public void playSoundExplosion() {
         if (this.soundPoolLoaded) {
             float leftVol = 0.8f;
@@ -123,6 +129,9 @@ public abstract class GameSurface extends SurfaceView implements SurfaceHolder.C
         }
     }
 
+    /**
+     * Used to play backgriound sound
+     */
     public void playSoundBackground() {
         if (this.soundPoolLoaded) {
             float leftVol = 0.8f;
@@ -133,12 +142,20 @@ public abstract class GameSurface extends SurfaceView implements SurfaceHolder.C
         }
     }
 
-    //Draw sprite to canvas
+    /**
+     * Used to draw sprite to canvas - to be overrriden
+     * @param canvas
+     */
     public void draw(Canvas canvas) {
         super.draw(canvas);
     }
 
     // Implements method of SurfaceHolder.Callback
+
+    /**
+     * Used to create and start a new game thread with the current game surface
+     * @param holder
+     */
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         // Create and start the game thread
@@ -147,25 +164,32 @@ public abstract class GameSurface extends SurfaceView implements SurfaceHolder.C
         this.gameThread.start();
     }
 
-    @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-    }
+    //Defines abstract methods to be implemented in child classes
 
     @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-    }
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height){
+
+    };
 
     @Override
-    public boolean onTouchEvent(MotionEvent event) {
+    public  void surfaceDestroyed(SurfaceHolder holder){
 
-        return false;
-    }
+    };
 
-    public void update() {
-    }
+    @Override
+    public abstract boolean onTouchEvent(MotionEvent event);
+
+    public abstract void update();
 
     //A function to generate a random number within a range
     //Used to generate random chibi position at game start
+
+    /**
+     * Return random int in range
+     * @param min
+     * @param max
+     * @return
+     */
     public static int getRandomNumberInRange(int min, int max) {
         //Error handling
         if (min >= max) {
@@ -178,65 +202,34 @@ public abstract class GameSurface extends SurfaceView implements SurfaceHolder.C
     }
 
     //Function to determine whether an object in the game is touching another
+
+    /**
+     *
+     * @param gameObject
+     * @param x
+     * @param y
+     * @return isTouching
+     */
     public boolean isTouching(GameObject gameObject, int x, int y) {
         return gameObject.getX() < x && x < gameObject.getX() + gameObject.getWidth()
                 && gameObject.getY() < y && y < gameObject.getY() + gameObject.getHeight();
     }
 
-    //Could have overriden method where string of level is passed as param and inherit from super
-    public static void insertLevelScore(Context context, String level, int points){
-        SharedPreferences.Editor editor = getPrefs(context).edit();
-        editor.putString(level, Integer.toString(points));
-        editor.apply();
-    }
-
+    /**
+     * Shared preferences used for local storage of score
+     * @param context
+     * @return sharedPreferences instance
+     */
     public static SharedPreferences getPrefs(Context context) {
         return context.getSharedPreferences("Scores", Context.MODE_PRIVATE);
     }
 
-    public static String retrieveHighScore(Context context) {
-        String key = "LevelOne";
-        return getPrefs(context).getString(key, "no_data_found");
+    /**
+     * Used to draw to canvas, can be overriden
+     * @param canvas
+     */
+    public abstract void doDraw(Canvas canvas);
 
-    }
-
-
-    public void doDraw(Canvas canvas) {
-        //Draws the canvas
-        super.draw(canvas);
-
-        //Set background for the canvas
-        Bitmap background = BitmapFactory.decodeResource(this.getResources(), R.drawable.grass);
-        Bitmap scaledBackground = Bitmap.createScaledBitmap(background, this.getWidth(),
-                this.getHeight(), true);
-
-        canvas.drawBitmap(scaledBackground, 0, 0, null);
-
-        //Draw characters and explosions into the arena
-        for (ChibiCharacter chibi : chibiList) {
-            chibi.draw(canvas);
-        }
-
-        for (MainCharacter mainCharacter : mainCharacterList) {
-            mainCharacter.draw(canvas);
-        }
-
-        for (Explosion explosion : this.explosionList) {
-            explosion.draw(canvas);
-        }
-
-        for (GameButton gameButton : this.gameButtonList) {
-            gameButton.setPosition(canvas.getWidth() / 2 - gameButton.getWidth() / 2,
-                    canvas.getHeight() / 2 - gameButton.getHeight() / 2);
-            gameButton.draw(canvas);
-        }
-
-        //Draws user score in top left of screen
-        Paint textPaint = new Paint();
-        textPaint.setColor(Color.WHITE);
-        textPaint.setTextSize(scaledSize);
-        canvas.drawText("Current score: " + points, 20, 50, textPaint);
-    }
 
 
     public Bitmap getScaledBitmap(Bitmap bitmap) {

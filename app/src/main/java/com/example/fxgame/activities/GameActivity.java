@@ -11,6 +11,10 @@ import com.example.fxgame.surfaces.GameSurfaceOne;
 
 public class GameActivity extends Activity {
 
+    /**
+     *
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -22,6 +26,7 @@ public class GameActivity extends Activity {
         //set no title
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
+        //Loads level one
         this.setContentView(new GameSurfaceOne(this));
 
 

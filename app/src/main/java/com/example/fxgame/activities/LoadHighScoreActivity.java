@@ -30,28 +30,59 @@ import java.util.Map;
 public class LoadHighScoreActivity extends AppCompatActivity {
 
     public Context mContext = this;
+    public int counter = 0 ;
 
+    /**
+     *
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.high_scores);
 
+        //Get instance of high score db
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         CollectionReference highScoreReference = db.collection("highscores");
-        highScoreReference.orderBy("Score", Query.Direction.DESCENDING).limit(3)
+        // Return fields ordered by score, limited to 3
+        highScoreReference.orderBy("Score", Query.Direction.ASCENDING).limit(3)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if (task.isSuccessful()) {
                             for (QueryDocumentSnapshot document : task.getResult()) {
-                                String value = document.getString("Name");
-                                Log.v("Atag", value);
+                                //Assign result to variable as they are inside an object in document
+                                String name = document.getString("Name");
+                                String score = document.getString("Score");
+
+                                //Populate fields in the view
+                                populateTextView(counter, name, score);
+                                counter++;
                             }
                         } else {
                             Log.d("TAG", "Error getting documents: ", task.getException());
                         }
                     }
                 });
+    }
+
+    /**
+     * Used to populate text in the view with high scores
+     * @param counter
+     * @param name
+     * @param score
+     */
+    public void populateTextView(int counter, String name, String score){
+        if (counter == 0) {
+            TextView scoreOne = (TextView) findViewById(R.id.rankOne);
+            scoreOne.setText(name + "..." + score);
+        } else if (counter == 1) {
+            TextView scoreTWo = (TextView) findViewById(R.id.rankTwo);
+            scoreTWo.setText(name + "..." + score);
+        } else {
+            TextView scoreThree = (TextView) findViewById(R.id.rankThree);
+            scoreThree.setText(name + "..." + score);
+        }
     }
 }

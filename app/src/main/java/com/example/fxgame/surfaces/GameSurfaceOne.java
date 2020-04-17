@@ -57,6 +57,10 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
     private int scaledSize = getResources().getDimensionPixelSize(R.dimen.myFontSize);
 
 
+    /**
+     * Sets up characters in level and initialize variables
+     * @param context
+     */
     public GameSurfaceOne(Context context) {
         super(context);
         this.mContext = context;
@@ -94,7 +98,10 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
         this.initSoundPool();
     }
 
-    //Draw sprite to canvas
+    /**
+     * Draw objects to canvas
+     * @param canvas
+     */
     public void doDraw(Canvas canvas) {
         //Draws the canvas
         super.draw(canvas);
@@ -134,6 +141,11 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
     }
 
     // Implements method of SurfaceHolder.Callback
+
+    /**
+     * Create and start new game thread
+     * @param holder
+     */
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         this.mHolder = holder;
@@ -143,6 +155,7 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
         this.gameThread.start();
 
     }
+
 
     public void initSoundPool() {
         super.initSoundPool();
@@ -162,6 +175,11 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
 
     }
 
+    /**
+     * Handle touch events in the game
+     * @param event
+     * @return boolean
+     */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         //code that handles user interacting with the screen
@@ -217,6 +235,9 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
     }
 
 
+    /**
+     * Updates all characters and objects in the game
+     */
     public void update() {
         //loop through the character arraylist and update them
         for (ChibiCharacter chibi : chibiList) {
@@ -280,28 +301,25 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
         }
     }
 
+    /**
+     * Handle when a surface is destroyed
+     * @param holder
+     */
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         boolean retry = true;
         if (gameThread != null) {
             gameThread.setCanDraw(false);
         }
-
-        //join the thread with this thread
-        while (retry) {
-            try {
-                if (gameThread != null) {
-                    gameThread.join();
-                }
-                retry = false;
-            }
-            catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
 
+    /**
+     * Get random number in range
+     * @param min
+     * @param max
+     * @return int
+     */
     //A function to generate a random number within a range
     //Used to generate random chibi position at game start
     public static int getRandomNumberInRange(int min, int max) {
@@ -315,6 +333,13 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
         return r.nextInt((max - min) + 1) + min;
     }
 
+    /**
+     * Decide whether a game object is touching a coordinate
+     * @param gameObject
+     * @param x
+     * @param y
+     * @return boolean
+     */
     //Function to determine whether an object in the game is touching another
     public boolean isTouching(GameObject gameObject, int x, int y) {
         return gameObject.getX() < x && x < gameObject.getX() + gameObject.getWidth()
@@ -322,6 +347,10 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
     }
 
 
+    /**
+     * Add a game over button to game
+     * @param isGameOver
+     */
     void addGameOverButton(boolean isGameOver) {
         //Adds a game over button to the canvas once isGameOver is set to true
         if (isGameOver) {
@@ -339,6 +368,10 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
         editor.commit();
     }
 
+    /**
+     * Get current level high score
+     * @return
+     */
     public int getHighScoreFromPreferences() {
         //Gets the user high score from shared preferences for LevelOne
         sharedPreferences = mContext.getSharedPreferences(MYPREFERENCES, Context.MODE_PRIVATE);
@@ -348,6 +381,10 @@ public class GameSurfaceOne extends GameSurface implements SurfaceHolder.Callbac
 
     }
 
+    /**
+     * Used to perform end game procedures
+     * @param nextLevel
+     */
     @Override
     public void endGame(boolean nextLevel) {
         if (!nextLevel) {

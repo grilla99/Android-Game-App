@@ -11,6 +11,9 @@ import android.view.View;
 import android.widget.Button;
 
 import com.example.fxgame.R;
+import com.example.fxgame.surfaces.GameSurfaceOne;
+import com.example.fxgame.surfaces.GameSurfaceThree;
+import com.example.fxgame.surfaces.GameSurfaceTwo;
 
 public class MainActivity extends AppCompatActivity {
     public Context mContext = this;
@@ -23,13 +26,22 @@ public class MainActivity extends AppCompatActivity {
 
         Button newScreen = findViewById(R.id.new_game_btn);
         Button exit = findViewById(R.id.exit_btn);
+        Button highScores = findViewById(R.id.high_scores_btn);
 
         newScreen.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, GameActivityThree.class);
+                Intent intent = new Intent(mContext, GameActivity.class);
                 mContext.startActivity(intent);
 
+            }
+        });
+
+        highScores.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(mContext, LoadHighScoreActivity.class);
+                mContext.startActivity(intent);
             }
         });
 

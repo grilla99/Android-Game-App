@@ -74,6 +74,10 @@ public class GameSurfaceThree extends GameSurface implements SurfaceHolder.Callb
 
     private GameButton gameOverButton;
 
+    /**
+     * Sets up characters in level and initialize variables
+     * @param context
+     */
     public GameSurfaceThree(Context context) {
         super(context);
         this.mContext = context;
@@ -99,7 +103,7 @@ public class GameSurfaceThree extends GameSurface implements SurfaceHolder.Callb
 
         //Recursively create characters to add into the arena and position them randomly
         //More Chibi's in level 2
-        for (int counter = 0; counter < 6; counter++) {
+        for (int counter = 0; counter < 12; counter++) {
             int chibiX = getRandomNumberInRange(150, 1000);
             int chibiY = getRandomNumberInRange(700, 1450);
 
@@ -116,6 +120,10 @@ public class GameSurfaceThree extends GameSurface implements SurfaceHolder.Callb
         initSoundPool();
     }
 
+    /**
+     * Create and start new game thread
+     * @param holder
+     */
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         this.mHolder = holder;
@@ -125,6 +133,11 @@ public class GameSurfaceThree extends GameSurface implements SurfaceHolder.Callb
         this.gameThread.start();
     }
 
+    /**
+     * Handle touch events in the game
+     * @param event
+     * @return boolean
+     */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         //code that handles user interacting with the screen
@@ -252,6 +265,9 @@ public class GameSurfaceThree extends GameSurface implements SurfaceHolder.Callb
         canvas.drawText("Current score: " + points, 20, 50, textPaint);
     }
 
+    /**
+     * Updates all characters and objects in the game
+     */
     @Override
     public void update() {
         //loop through the character arraylist and update them
@@ -305,6 +321,10 @@ public class GameSurfaceThree extends GameSurface implements SurfaceHolder.Callb
         }
     }
 
+    /**
+     * Get current level high score
+     * @return
+     */
     public int getHighScoreFromPreferences() {
         //Gets the user high score from shared preferences for LevelOne
         sharedPreferences = mContext.getSharedPreferences(MYPREFERENCES, Context.MODE_PRIVATE);
@@ -313,6 +333,10 @@ public class GameSurfaceThree extends GameSurface implements SurfaceHolder.Callb
         return Integer.parseInt(highScoreString);
     }
 
+    /**
+     * Gets score from level two
+     * @return score
+     */
     public int getPreviousLevelScore() {
         //Gets the user high score from shared preferences for LevelOne
         sharedPreferences = mContext.getSharedPreferences(MYPREFERENCES, Context.MODE_PRIVATE);
@@ -321,6 +345,9 @@ public class GameSurfaceThree extends GameSurface implements SurfaceHolder.Callb
         return Integer.parseInt(highScoreString);
     }
 
+    /**
+     * See super
+     */
     @Override
     public void saveHighScore() {
         //Saves the user points to shared preferences
@@ -329,6 +356,10 @@ public class GameSurfaceThree extends GameSurface implements SurfaceHolder.Callb
         editor.commit();
     }
 
+    /**
+     * Add a game over button to game
+     * @param isGameOver
+     */
     void addGameOverButton(boolean isGameOver) {
         if (isGameOver) {
             //If the game is said to be over, create a new GameButton object and add it to the
@@ -340,6 +371,10 @@ public class GameSurfaceThree extends GameSurface implements SurfaceHolder.Callb
         }
     }
 
+    /**
+     * Used to perform end game procedures
+     * @param nextLevel
+     */
     @Override
     public void endGame(boolean nextLevel) {
         if (!nextLevel) {

@@ -5,6 +5,9 @@ import android.graphics.Canvas;
 
 import com.example.fxgame.surfaces.GameSurface;
 
+/**
+ * Used to create explosions in the game
+ */
 public class Explosion extends GameObject {
     private int rowIndex = 0;
     private int colIndex = -1;
@@ -12,12 +15,22 @@ public class Explosion extends GameObject {
     private boolean finish = false;
     private GameSurface gameSurface;
 
+    /**
+     * Constructor to create an explosion
+     * @param GameSurface
+     * @param image
+     * @param x
+     * @param y
+     */
     public Explosion(GameSurface GameSurface, Bitmap image, int x, int y) {
         super(image, 5, 5, x, y);
 
         this.gameSurface = GameSurface;
     }
 
+    /**
+     * Defines the lifeycle of an explosion
+     */
     public void update() {
         this.colIndex++;
 
@@ -36,6 +49,10 @@ public class Explosion extends GameObject {
         }
     }
 
+    /**
+     * Draws the explosion to canvas
+     * @param canvas
+     */
     public void draw(Canvas canvas) {
         if (!finish) {
             Bitmap bitmap = this.createSubImageAt(rowIndex, colIndex);
@@ -43,6 +60,10 @@ public class Explosion extends GameObject {
         }
     }
 
+    /**
+     * Used to get whether explosion is finished or not
+     * @return finish
+     */
     public boolean isFinish() {
         return finish;
     }

@@ -50,6 +50,10 @@ public class ChibiCharacter extends GameObject {
         }
     }
 
+    /**
+     * Used to get the different images of the Chibi in order to create the animation
+     * @return
+     */
     public Bitmap[] getMoveBitmaps() {
         switch (rowUsing) {
             case ROW_BOTTOM_TO_TOP:
@@ -65,11 +69,18 @@ public class ChibiCharacter extends GameObject {
         }
     }
 
+    /**
+     * Gets the current move bitmap state
+     * @return Bitmap
+     */
     public Bitmap getCurrentMoveBitmap() {
         Bitmap[] bitmaps = this.getMoveBitmaps();
         return bitmaps[this.colUsing];
     }
 
+    /**
+     * Update the chibi character in the view and handle movement and direction
+     */
     public void update() {
         this.colUsing++;
         if (colUsing >= this.colCount) {
@@ -114,7 +125,7 @@ public class ChibiCharacter extends GameObject {
             this.movingVectorY = -this.movingVectorY;
         }
 
-        // rowUsing
+        // Defines what movement style the chibi should be using (see Bitmap)
         if (movingVectorX > 0) {
             if (movingVectorY > 0 && Math.abs(movingVectorX) < Math.abs(movingVectorY)) {
                 this.rowUsing = ROW_TOP_TO_BOTTOM;
@@ -134,6 +145,10 @@ public class ChibiCharacter extends GameObject {
         }
     }
 
+    /**
+     * Draws the chibi to canvas
+     * @param canvas
+     */
     public void draw(Canvas canvas) {
         Bitmap bitmap = this.getCurrentMoveBitmap();
         canvas.drawBitmap(bitmap, x, y, null);
@@ -141,11 +156,20 @@ public class ChibiCharacter extends GameObject {
         this.lastDrawNanoTime = System.nanoTime();
     }
 
+    /**
+     * Sets direction of chibi
+     * @param movingVectorX
+     * @param movingVectorY
+     */
     public void setMovingVector(int movingVectorX, int movingVectorY) {
         this.movingVectorX = movingVectorX;
         this.movingVectorY = movingVectorY;
     }
 
+    /**
+     * Set speed of chibi
+     * @param velocity
+     */
     public void setChibiSpeed(float velocity) {
         VELOCITY = velocity;
     }

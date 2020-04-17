@@ -24,6 +24,7 @@ public class MainCharacter extends GameObject {
     // Velocity of game character (pixel/millisecond)
     public static float VELOCITY = 0.1f;
 
+    //Define start position
     private int movingVectorX = 10;
     private int movingVectorY = 5;
 
@@ -36,6 +37,7 @@ public class MainCharacter extends GameObject {
 
         this.gameSurface = gameSurface;
 
+        //Used to create movement animation
         this.topToBottoms = new Bitmap[colCount]; // 3
         this.rightToLefts = new Bitmap[colCount]; // 3
         this.leftToRights = new Bitmap[colCount]; // 3
@@ -49,6 +51,10 @@ public class MainCharacter extends GameObject {
         }
     }
 
+    /**
+     * Used to return array of images for animation
+     * @return Bitmap[]
+     */
     public Bitmap[] getMoveBitmaps() {
         switch (rowUsing) {
             case ROW_BOTTOM_TO_TOP:
@@ -64,11 +70,18 @@ public class MainCharacter extends GameObject {
         }
     }
 
+    /**
+     * Get current move bitmap
+     * @return Bitmap
+     */
     public Bitmap getCurrentMoveBitmap() {
         Bitmap[] bitmaps = this.getMoveBitmaps();
         return bitmaps[this.colUsing];
     }
 
+    /**
+     * Takes care of animation in game and setting direction and speed
+     */
     public void update() {
         this.colUsing++;
         if (colUsing >= this.colCount) {
@@ -113,7 +126,7 @@ public class MainCharacter extends GameObject {
             this.movingVectorY = -this.movingVectorY;
         }
 
-        // rowUsing
+        // rowUsing, used for animations
         if (movingVectorX > 0) {
             if (movingVectorY > 0 && Math.abs(movingVectorX) < Math.abs(movingVectorY)) {
                 this.rowUsing = ROW_TOP_TO_BOTTOM;
@@ -133,6 +146,10 @@ public class MainCharacter extends GameObject {
         }
     }
 
+    /**
+     * Draw character to canvas
+     * @param canvas
+     */
     public void draw(Canvas canvas) {
         Bitmap bitmap = this.getCurrentMoveBitmap();
         canvas.drawBitmap(bitmap, x, y, null);
@@ -140,11 +157,20 @@ public class MainCharacter extends GameObject {
         this.lastDrawNanoTime = System.nanoTime();
     }
 
+    /**
+     * Set direction of character
+     * @param movingVectorX
+     * @param movingVectorY
+     */
     public void setMovingVector(int movingVectorX, int movingVectorY) {
         this.movingVectorX = movingVectorX;
         this.movingVectorY = movingVectorY;
     }
 
+    /**
+     * Set speed (For future game adaptations)
+     * @param velocity
+     */
     public void setVelocity(float velocity) {
         VELOCITY = velocity;
     }

@@ -22,6 +22,7 @@ public class GameActivityTwo extends Activity {
         //set no title
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
+        //Load level two view
         this.setContentView(new GameSurfaceTwo(this));
 
     }

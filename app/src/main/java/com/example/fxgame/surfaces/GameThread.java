@@ -13,17 +13,29 @@ public class GameThread extends Thread {
     private static int threadCounter = 0;
     private Context mContext;
 
+    /**
+     * Constructor for new thread
+     * @param gameSurface
+     * @param surfaceHolder
+     */
     GameThread(GameSurface gameSurface, SurfaceHolder surfaceHolder) {
         this.gameSurface = gameSurface;
         this.surfaceHolder = surfaceHolder;
         threadCounter++;
     }
 
+    /**
+     * Tell the thread whether or not can draw on canvas
+     * @param canDraw
+     */
     void setCanDraw(boolean canDraw) {
         this.canDraw = canDraw;
     }
 
 
+    /**
+     * Function that runs every time game thread is made, responsible for drawing
+     */
     @Override
     public void run() {
         long startTime = System.nanoTime();
